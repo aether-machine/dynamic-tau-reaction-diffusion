@@ -51,8 +51,18 @@ a feedback loop that integrates past fluctuations into coherent persistence.
 
 This leads naturally to a hierarchy of self-organization:
 
-Level	Description	Mechanism
-1. Oscillons	Localized standing waves	Nonlinear feedback in a scalar field
-2. Proto-life	Bound oscillons exchanging energy	Coupled time-density modulation
-3. Biological life	Persistent flow–memory systems	Metabolic self-maintenance
-4. Consciousness	Reflexive self-reference	Awareness as dynamic memory
+$$
+\begin{array}{|c|l|l|}
+\hline
+\textbf{Level} & \textbf{Description} & \textbf{Mechanism} \\
+\hline
+1.\ \text{Oscillons} & \text{Localized standing waves} & \text{Nonlinear feedback in a scalar field} \\
+\hline
+2.\ \text{Proto-life} & \text{Bound oscillons exchanging energy} & \text{Coupled time-density modulation} \\
+\hline
+3.\ \text{Biological life} & \text{Persistent flow–memory systems} & \text{Metabolic self-maintenance} \\
+\hline
+4.\ \text{Consciousness} & \text{Reflexive self-reference} & \text{Awareness as dynamic memory} \\
+\hline
+\end{array}
+$$
