@@ -56,13 +56,13 @@ $$
 \hline
 \textbf{Level} & \textbf{Description} & \textbf{Mechanism} \\
 \hline
-1.\ \text{Oscillons} & \text{Localized standing waves} & \text{Nonlinear feedback in a scalar field} \\
+\ \text{Oscillons} & \text{Localized standing waves} & \text{Nonlinear feedback in a scalar field} \\
 \hline
-2.\ \text{Proto-life} & \text{Bound oscillons exchanging energy} & \text{Coupled time-density modulation} \\
+\ \text{Proto-life} & \text{Bound oscillons exchanging energy} & \text{Coupled time-density modulation} \\
 \hline
-3.\ \text{Biological life} & \text{Persistent flow–memory systems} & \text{Metabolic self-maintenance} \\
+\ \text{Biological life} & \text{Persistent flow–memory systems} & \text{Metabolic self-maintenance} \\
 \hline
-4.\ \text{Consciousness} & \text{Reflexive self-reference} & \text{Awareness as dynamic memory} \\
+\ \text{Consciousness} & \text{Reflexive self-reference} & \text{Awareness as dynamic memory} \\
 \hline
 \end{array}
 $$
