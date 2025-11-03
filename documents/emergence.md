@@ -66,6 +66,7 @@ $$
 \hline
 \end{array}
 $$
+
 Each level preserves the logic of flow interacting with stored pattern, but with increasing complexity and internal memory depth.
 
 4. Life as the Memory of Flow
