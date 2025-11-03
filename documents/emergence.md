@@ -13,12 +13,11 @@ When these oscillons are coupled through a memory field — a scalar τ that mod
 they persist, adapt, and interact.
 
 Mathematically:
+
 $$
-\begin{aligned}
 \frac{\partial A}{\partial t} &= D \nabla^{2} A + f(A, B) + \alpha\, (\tau - \tau_{0}) \\
 \frac{\partial B}{\partial t} &= D \nabla^{2} B + g(A, B) \\
 \frac{\partial \tau}{\partial t} &= \beta\, \nabla^{2} \tau + \gamma\, \left| \nabla A \right|^{2}
-\end{aligned}
 $$
 Here:
 
