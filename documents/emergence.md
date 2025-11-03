@@ -14,11 +14,10 @@ they persist, adapt, and interact.
 
 Mathematically:
 
-$$
-\frac{\partial A}{\partial t} &= D \nabla^{2} A + f(A, B) + \alpha\, (\tau - \tau_{0}) \\
-\frac{\partial B}{\partial t} &= D \nabla^{2} B + g(A, B) \\
-\frac{\partial \tau}{\partial t} &= \beta\, \nabla^{2} \tau + \gamma\, \left| \nabla A \right|^{2}
-$$
+$$\frac{\partial A}{\partial t} &= D \nabla^{2} A + f(A, B) + \alpha\, (\tau - \tau_{0}) \\$$
+$$\frac{\partial B}{\partial t} &= D \nabla^{2} B + g(A, B) \\$$
+$$\frac{\partial \tau}{\partial t} &= \beta\, \nabla^{2} \tau + \gamma\, \left| \nabla A \right|^{2}$$
+
 Here:
 
 A,B
