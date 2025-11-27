@@ -84,7 +84,9 @@ This is the foundation of proto-life in the simulations.
 
 Diffusion equation modified by τ:
 
-$$k(x,t) = k0 * τ^γ$$
+$$
+(x,t) = k_{0}\, \tau^{\gamma}
+$$
 
 
 Reveals:
@@ -109,7 +111,10 @@ Findings:
 
 τ becomes adaptive and responds to activity `S(x,t)`:
 
-$$∂τ/∂t = α * S(x,t) - β * (τ - τ0)$$
+$$
+\frac{\partial \tau}{\partial t}
+= \alpha\, S(x,t) - \beta\, (\tau - \tau_{0})
+$$
 
 
 Where `S(x,t)` = reaction intensity, autocatalytic rate, or gradient magnitude.
