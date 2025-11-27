@@ -193,3 +193,25 @@ with open(f"{outdir}/metrics.csv", "w", newline='') as fh:
         writer.writerow([times[i], coherence_ts[i], energy_ts[i], entropy_ts[i], autocat_ts[i]])
 
 print("Simulation complete. Outputs saved to:", outdir)
+# --- Animation builder (optional)
+import imageio
+import glob
+
+# Collect all saved B snapshots (change pattern if you want tau animation instead)
+frames = sorted(glob.glob(f"{outdir}/B_snapshot_*.png"))
+if not frames:
+    print("No snapshot frames found. Skipping animation.")
+else:
+    # Build MP4
+    mp4_path = f"{outdir}/B_evolution.mp4"
+    with imageio.get_writer(mp4_path, fps=15, codec='libx264', quality=8) as writer:
+        for fn in frames:
+            writer.append_data(imageio.imread(fn))
+    print("MP4 animation saved to:", mp4_path)
+
+    # Build GIF
+    gif_path = f"{outdir}/B_evolution.gif"
+    with imageio.get_writer(gif_path, mode='I', duration=0.07) as writer:
+        for fn in frames:
+            writer.append_data(imageio.imread(fn))
+    print("GIF animation saved to:", gif_path)
