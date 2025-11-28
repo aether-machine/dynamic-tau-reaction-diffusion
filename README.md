@@ -53,9 +53,9 @@ The repository now contains **five major simulation modules**, each building on 
 
 Equation:
 
-\[
+$$\[
 \frac{\partial C}{\partial t} = D \nabla \cdot (\tau(x,t) \nabla C)
-\]
+\]$$
 
 Findings:
 
@@ -69,9 +69,9 @@ Findings:
 
 Reaction rate becomes time-adaptive:
 
-\[
+$$\[
 k_{\text{eff}} = k_0\, f(\tau)
-\]
+\]$$
 
 Findings:
 
@@ -99,10 +99,10 @@ Findings:
 
 We introduce feedback:
 
-\[
+$$\[
 \frac{\partial \tau}{\partial t}
 = \alpha S(x,t) - \beta (\tau - \tau_0)
-\]
+\]$$
 
 where S(x,t) is local activity.
 
