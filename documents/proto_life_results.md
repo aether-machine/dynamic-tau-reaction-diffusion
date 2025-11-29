@@ -137,7 +137,6 @@ This confirms that **feedback between reaction activity and τ** is responsible 
 ---
 
 # 4. Spatial Patterns & Morphogenesis  
-(*Insert figures into placeholders below*)
 
 The τ-coupled Gray–Scott system produces structures not seen in the standard model.
 
@@ -146,7 +145,7 @@ The τ-coupled Gray–Scott system produces structures not seen in the standard 
 ## 4.1 τ-Stabilized Oscillons (Proto-Cells)
 
 **FIGURE 1: B-field snapshots over time**  
-*(Insert file: B_snapshot_000X.png)*
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/snapshots_montage.png)
 
 These structures:
 
