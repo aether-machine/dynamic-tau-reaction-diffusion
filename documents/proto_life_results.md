@@ -87,6 +87,8 @@ $$\[
 
 **Coherence increases monotonically**, suggesting the system converges toward an attractor.
 
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/coherence_vs_entropy.png)
+
 **Interpretation:**  
 The τ-field acts like a *memory integrator*, reinforcing stable oscillatory pockets.
 
