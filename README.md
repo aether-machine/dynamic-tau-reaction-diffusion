@@ -197,6 +197,7 @@ This supports a deep idea:
 
 ## 6. Repository Structure (Updated)
 
+```
 time-density/
 │
 ├── README.md ← you are here
@@ -223,7 +224,7 @@ time-density/
 │
 ├── LICENSE
 └── zenodo.json
-
+```
 
 ---
 
