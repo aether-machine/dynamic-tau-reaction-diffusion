@@ -184,7 +184,7 @@ In multiple runs, oscillons:
 This is emergent — no reproduction rule is coded into the model.
 
 **FIGURE 3: Oscillon division event**  
-*(Insert promising frame indices here)*
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/figure3_oscillon_candidate.png)
 
 ---
 
