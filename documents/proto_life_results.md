@@ -161,7 +161,7 @@ They are proto-membranes.
 ## 4.2 τ Filamentation and Tubular Growth
 
 **FIGURE 2: τ-field evolution**  
-*(Insert file: tau_snapshot_000X.png)*
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_00.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_10.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_19.png)
 
 τ forms **tubular channels** that persist independently of chemical gradients.
 
