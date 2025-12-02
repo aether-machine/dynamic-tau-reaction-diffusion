@@ -46,12 +46,23 @@ The **time-density field τ** then evolves according to:
 
 $$\[
 \frac{\partial \tau}{\partial t}
-  = \alpha \,\text{mem}
-  - \beta (\tau - \tau_0)
-  + \gamma N
-  + \kappa_\tau \nabla^2 \tau
-  + \eta_\tau(x,t)
 \]$$
+$$\[
+= \alpha \,\text{mem}
+\]$$
+$$\[
+- \beta (\tau - \tau_0)
+\]$$
+$$\[
++ \gamma N
+\]$$
+$$\[
++ \kappa_\tau \nabla^2 \tau
+\]$$
+$$\[
++ \eta_\tau(x,t)
+\]$$
+
 
 - $$\alpha \,\text{mem}$$ — memory feedback
 - $$-\beta (\tau - \tau_0)$$ — relaxation to baseline
