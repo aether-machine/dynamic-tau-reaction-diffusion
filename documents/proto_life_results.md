@@ -361,7 +361,7 @@ In the best-performing runs, the B-field develops **oscillons**:
 τ thickens around these oscillons through the mem feedback, producing **pockets of slower time** that act like **proto-membranes**.
 
 **FIGURE 1: B-field snapshots over time (best v4 run)**  
-(e.g. `plots/proto_life_v4/best_run_snaps/B_00.png`, `B_10.png`, `B_19.png`)
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/snapshots_montage.png)
 
 These snapshots show:
 
@@ -380,7 +380,7 @@ In the same runs, τ evolves from uniform to strongly structured:
 - At late times, τ maintains this complementary pattern (correlation ≈ −0.97).
 
 **FIGURE 2: τ-field evolution (best v4 run)**  
-(e.g. `plots/proto_life_v4/best_run_snaps/tau_00.png`, `tau_10.png`, `tau_19.png`)
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_00.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_10.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_19.png)
 
 τ forms **tubular channels and shells** that:
 
@@ -408,9 +408,7 @@ In multiple runs (particularly on the ridge), we observe sequences where oscillo
 
 No reproduction rule was coded into the model; division events are emergent consequences of the coupled (A,B,τ,N) dynamics.
 
-**FIGURE 3: Oscillon division event**  
-(e.g. B snapshots `B_00.png`, `B_10.png`, `B_19.png` from a division run)
-
+**FIGURE 3: Oscillon division event**  ![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_00.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_10.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_19.png)
 These are **proto-replication signatures**: instability of a single oscillatory pocket into two new, stable pockets that then maintain identity.
 
 ---
@@ -428,7 +426,7 @@ Using the global v4 metrics we can still classify regimes, now in a higher-dimen
 | **Hyperτ Runaway**   | τ increases explosively; large τ variance, degraded maintenance (cancer-like)   |
 
 **FIGURE 4: Phase Map (α vs β)**  
-(e.g. `plots/proto_life_v4/phase_alpha_beta.png`)
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/phase_alpha_beta.png)
 
 The **Autopoietic / Proto-Metabolic** zones cluster sharply around:
 
