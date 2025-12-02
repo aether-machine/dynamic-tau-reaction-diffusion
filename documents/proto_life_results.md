@@ -408,7 +408,9 @@ In multiple runs (particularly on the ridge), we observe sequences where oscillo
 
 No reproduction rule was coded into the model; division events are emergent consequences of the coupled (A,B,τ,N) dynamics.
 
-**FIGURE 3: Oscillon division event**  ![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_00.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_10.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_19.png)
+**FIGURE 3: Oscillon division event**  
+
+![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_00.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_10.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_19.png)
 These are **proto-replication signatures**: instability of a single oscillatory pocket into two new, stable pockets that then maintain identity.
 
 ---
