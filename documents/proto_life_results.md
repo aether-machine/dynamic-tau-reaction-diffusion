@@ -44,14 +44,20 @@ where λ is the **memory_decay** parameter.
 
 The **time-density field τ** then evolves according to:
 
-$$
+$$\[
 \frac{\partial \tau}{\partial t}
-  = \alpha \,\mathrm{mem}
+  = \alpha \,\text{mem}
   - \beta (\tau - \tau_0)
   + \gamma N
   + \kappa_\tau \nabla^2 \tau
   + \eta_\tau(x,t)
-$$
+\]$$
+
+- $$\alpha \,\text{mem}$$ — memory feedback
+- $$-\beta (\tau - \tau_0)$$ — relaxation to baseline
+- $$\gamma N$$ — nutrient coupling
+- $$\kappa_\tau \nabla^2 \tau$$ — curvature / smoothing
+- $$\eta_\tau(x,t)$$ — stochastic τ-noise
 
 
 
