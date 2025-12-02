@@ -63,15 +63,6 @@ $$\[
 + \eta_\tau(x,t)
 \]$$
 
-
-- $$\alpha \,\text{mem}$$ — memory feedback
-- $$-\beta (\tau - \tau_0)$$ — relaxation to baseline
-- $$\gamma N$$ — nutrient coupling
-- $$\kappa_\tau \nabla^2 \tau$$ — curvature / smoothing
-- $$\eta_\tau(x,t)$$ — stochastic τ-noise
-
-
-
 where:
 
 - **α** – strengthens τ where activity has persisted in the past (memory feedback)  
