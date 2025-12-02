@@ -1,268 +1,508 @@
 # Proto-Life Emergence in Dynamic Time-Density Fields  
-**Version 5 Simulation Results**
+**Version 6 – v4 + Q-Ridge Exploration**
 
 > **“Life begins where time learns to reinforce its own patterns.”**
 
-This document provides a full analysis and interpretation of the **dynamic-τ reaction–diffusion simulations (Simulation 4/Version 5)** that revealed **proto-life behaviours** emerging from simple mathematical rules.
+This document summarises the **dynamic-τ reaction–diffusion simulations (v4)** and the subsequent **fine-grained Q-ridge exploration** that revealed robust **proto-life behaviours** emerging from simple mathematical rules.
 
 The results confirm that **time-density feedback (τ)** is sufficient to generate:
+
 - autocatalytic structure  
 - stable coherence gradients  
 - entropy reduction  
 - self-organized memory pockets  
 - persistent, cell-like dynamics  
 
-This marks the first demonstration that **life-like attractors emerge from feedback in the time field**, independent of chemistry.
+In other words, **life-like attractors emerge from feedback in the time field**, independent of any specific chemistry.
 
 ---
 
-# 1. Overview of the Simulation
+# 1. Model Overview
 
-The simulation couples:
+The underlying system couples:
 
-- **Two chemical fields** A(x,t) and B(x,t) (Gray–Scott model)  
-- **A dynamic time-density field** τ(x,t)  
-- **Feedback:** τ increases in regions of activity (autocatalysis), and relaxes toward τ₀ elsewhere
+- **Two chemical fields** A(x,t) and B(x,t) (Gray–Scott-type reaction–diffusion),  
+- **A dynamic time-density field** τ(x,t),  
+- **A nutrient field** N(x,t),  
+- **A memory field** mem(x,t) accumulating past reaction activity.
 
-The governing equation is:
+The core Gray–Scott reaction term is:
 
-$$\[
+\[
+R(x,t) = A \, B^2
+\]
+
+with diffusion and feed/kill terms as usual.
+
+The **memory field** integrates activity:
+
+\[
+\text{mem}_{t+1} = (1 - \lambda)\,\text{mem}_t + |R_t|
+\]
+
+where λ is the **memory_decay** parameter.
+
+The **time-density field τ** then evolves according to:
+
+\[
 \frac{\partial \tau}{\partial t}
-    = \alpha S(x,t) - \beta (\tau - \tau_0)
-\]$$
+  = \alpha \,\text{mem}
+  - \beta (\tau - \tau_0)
+  + \gamma N
+  + \kappa_\tau \nabla^2 \tau
+  + \eta_\tau(x,t)
+\]
 
-with S(x,t) defined as:
+where:
 
-$$\[
-S = |A\,B^2| + 0.5 |\nabla B|
-\]$$
+- **α** – strengthens τ where activity has persisted in the past (memory feedback)  
+- **β** – relaxes τ back toward a baseline τ₀  
+- **γ** – couples τ to nutrient N (proto-metabolic coupling)  
+- **κ\_τ** – curvature coupling; smooths τ and allows tubular structures  
+- **η\_τ(x,t)** – stochastic τ-noise with amplitude τ\_noise  
 
-τ therefore acts as a *memory field*, thickening where dynamics persist.
+Nutrient is depleted by reaction activity:
 
-This produces **self-sustaining pockets of coherence**.
+\[
+\frac{\partial N}{\partial t} = - \mu |R|
+\]
 
----
+with **nutrient_use** μ.
 
-# 2. Parameter Sweep  
-We explored:
+τ therefore acts as a **spatiotemporal memory field**, thickening where dynamics persist and thinning where they do not. The chemical diffusion is **modulated by τ** via effective diffusion coefficients:
 
-- 4 values of α ∈ {0.0, 0.01, 0.02, 0.04}
-- 3 values of β ∈ {0.001, 0.005, 0.01}
-- 3 values of feed ∈ {0.03, 0.035, 0.04}
-- 2 values of kill ∈ {0.055, 0.065}
-- 3 random seeds each
+\[
+D_A^{\text{eff}} = \frac{D_A}{\tau}, \quad
+D_B^{\text{eff}} = \frac{D_B}{\tau}
+\]
 
-Total: **216 simulations**.
+so that **thickened time “focuses” diffusion and structure.**
 
-Metrics tracked throughout each run:
-
-- **Coherence:**  
-  $$\[
-  C = \langle |A + iB|^2 \rangle
-  \]$$
-
-- **Entropy** (Shannon entropy of B)
-- **Energy**  
-  $$\[
-  E = \frac{1}{2} \langle A^2 + B^2 \rangle
-  \]$$
-
-- **Autocatalysis:**  
-  $$\[
-  \langle A B^2 \rangle
-  \]$$
-
-These values form the basis of the analysis.
+This is the v4 implementation of the “time-density” idea: a field that both *remembers* and *reshapes* the dynamics.
 
 ---
 
-# 3. Key Empirical Findings
+# 2. Parameter Sweeps
 
-## 3.1 Coherence Rises Over Time (Strong Correlation)
-Across almost all parameter sets:
+We ran two complementary sweeps:
 
-$$\[
-\text{corr}(C(t), t) = 0.982
-\]$$
+1. A **global v4 sweep** over a broad parameter range.  
+2. A **local Q-ridge exploration** around a well-behaved “proto-life ridge” in parameter space.
 
-**Coherence increases monotonically**, suggesting the system converges toward an attractor.
+In both cases, we tracked:
 
-**Interpretation:**  
-The τ-field acts like a *memory integrator*, reinforcing stable oscillatory pockets.
-
----
-
-## 3.2 Entropy Declines as Coherence Rises
-We observe:
-
-$$\[
-\text{corr}(C, S_{\text{entropy}}) = -0.916
-\]$$
-
-A large negative correlation.
-
-**Interpretation:**  
-The system spontaneously shifts into **lower-entropy, higher-organization states** — a hallmark of living systems.  
-It represents a proto-metabolic stabilizing loop.
+- **Coherence** (spatial order; mean |A + iB|²),  
+- **Entropy** (Shannon entropy of B),  
+- **Autocatalysis** (mean A B²),  
+- **Maintenance score** (IoU-based cell boundary persistence),  
+- **Proto-life score** (composite z-scored dynamical metric),  
+- **τ-structure metrics** (variance and gradient energy of final τ).
 
 ---
 
-## 3.3 Energy and Coherence Are Perfectly Correlated
+## 2.1 Global v4 Sweep (384 Runs)
 
-$$\[
-\text{corr}(C, E) = 1.000
-\]$$
+Global sweep ranges (v4):
 
-This is astonishing — a perfect identity across all runs.
+- α ∈ {0.00, 0.01, 0.02, 0.04}  
+- β ∈ {0.001, 0.005, 0.01}  
+- γ ∈ {0.0, 0.005}  
+- feed ∈ {0.03, 0.035}  
+- kill ∈ {0.055, 0.065}  
+- κ\_τ ∈ {0.0, 0.02}  
+- τ\_noise ∈ {0.0, 0.01}
 
-**Interpretation:**  
-This indicates **coherence is the primary order parameter of the system**.  
-Energy density increases precisely to the degree that structure (coherence) increases.
+Grid size: **384 simulations**.
 
-This is the exact “life footprint” seen in:
+For each run we recorded:
 
-- autocatalytic chemical networks  
-- dissipative structures  
-- early-life protocells  
+- `metrics.csv`: time series of **time, coherence, entropy, autocat**  
+- `summary.json`: the config and snapshot list  
+- Snapshots of **B, τ, N** over time
 
----
-
-## 3.4 Autocatalytic Activity Tracks Coherence
-$$\[
-\text{corr}(C, \text{autocat}) = 0.884
-\]$$
-
-This confirms that **feedback between reaction activity and τ** is responsible for coherence growth.
+These runs provide the **global map** of proto-life behaviour across the extended parameter space.
 
 ---
 
-# 4. Spatial Patterns & Morphogenesis  
+## 2.2 Local Q-Ridge Exploration (27 Runs)
 
-The τ-coupled Gray–Scott system produces structures not seen in the standard model.
+From the global v4 sweep we identified a well-behaved **“Q-ridge”** region where:
+
+- Coherence is high,  
+- Entropy is relatively low,  
+- Cell-like structures persist,  
+- τ forms complementary structure without runaway blow-up.
+
+An anchor configuration from this ridge is:
+
+- α = 0.0  
+- β = 0.005  
+- γ = 0.005  
+- feed = 0.035  
+- kill = 0.065  
+- κ\_τ = 0.0  
+- τ\_noise = 0.0  
+
+Around this anchor we ran a **local v4 sweep**:
+
+- α ∈ {0.0, 0.005, 0.01}  
+- κ\_τ ∈ {0.0, 0.01, 0.02}  
+- τ\_noise ∈ {0.0, 0.005, 0.01}  
+
+with β, γ, feed, kill held fixed at the anchor values.
+
+Total: **27 Q-ridge runs**.
+
+This gives a **fine-grained cross-section through the autopoietic ridge**, showing how morphogenesis responds to small nudges in τ-feedback, curvature, and noise.
 
 ---
 
-## 4.1 τ-Stabilized Oscillons (Proto-Cells)
+# 3. Global Statistical Findings (v4 Sweep)
 
-**FIGURE 1: B-field snapshots over time**  
-![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/snapshots_montage.png)
+Let **M** denote the merged dataset of all 384 global runs, each summarised by:
 
-These structures:
+- mean_coherence  
+- mean_entropy  
+- mean_autocat  
+- maintenance_iou  
+- proto_life_score  
+- τ-variance (tau_var_final)  
+- τ-gradient energy (tau_grad2_final)  
 
-- maintain boundaries  
-- resist diffusion  
-- reactivate after perturbation  
-- “feed” on τ-thickened time regions  
-
-They are proto-membranes.
+All correlations below are computed across runs.
 
 ---
 
-## 4.2 τ Filamentation and Tubular Growth
+## 3.1 Coherence vs Maintenance: Structure Supports Identity
 
-**FIGURE 2: τ-field evolution**  
-![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_00.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_10.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/tau_19.png)
+Across the global v4 sweep:
 
-τ forms **tubular channels** that persist independently of chemical gradients.
+- **corr(mean_coherence, maintenance_iou) ≈ +0.35**
+
+Runs with **more coherent patterns** have **more persistent cell boundaries** (higher IoU between mid- and late-time B snapshots).
+
+Interpretation:
+
+- Coherence is not just aesthetic: it tracks **identity stability**.  
+- Where patterns are globally structured, **proto-cells “remember” themselves** over time.
+
+---
+
+## 3.2 Entropy vs Maintenance: Order is Preserved
+
+We also see:
+
+- **corr(mean_entropy, maintenance_iou) ≈ −0.51**
+
+Higher maintenance correlates with **lower spatial entropy** of B.
+
+Interpretation:
+
+- The system spontaneously shifts from **disordered foam** toward **organised, low-entropy pockets** that maintain their form across time.  
+- This is a proto-metabolic signature: **local order maintained at the expense of global dissipation**.
+
+---
+
+## 3.3 Proto-Life Score vs Maintenance
+
+We defined a composite **proto_life_score** per run by z-scoring and combining:
+
+- mean_coherence (↑ good)  
+- mean_entropy (↓ good)  
+- coherence trend over time, C(t) (↑ good)  
+- entropy trend over time (↓ good)  
+- corr(coherence, entropy) (more negative is better)  
+- corr(coherence, autocat)
+
+Across the 384 global runs:
+
+- **corr(proto_life_score, maintenance_iou) ≈ +0.59**
+
+So the proto_life_score tracks exactly what we care about:
+
+> **Runs that score highly by this composite measure are also the runs where cell-like structures persist.**
+
+The top-scoring global v4 run has:
+
+- α = 0.0, β = 0.005, γ = 0.005  
+- feed = 0.035, kill = 0.065  
+- κ\_τ = 0.0, τ\_noise = 0.0  
+- mean_coherence ≈ 0.993  
+- maintenance_iou ≈ 0.53  
+- tau_var_final ≈ 0.0065
+
+This is exactly the **Q-ridge anchor** we later explored locally.
+
+---
+
+## 3.4 τ-Structure and Hyperτ Runaway
+
+We quantified τ-structure using:
+
+- **tau_var_final** – variance of the final τ snapshot, normalised to [0,1]  
+- **tau_grad2_final** – mean squared gradient |∇τ|² (roughness / edge strength)
+
+Across the global v4 sweep:
+
+- **corr(tau_var_final, maintenance_iou) ≈ −0.34**  
+- **corr(tau_grad2_final, maintenance_iou) ≈ +0.23**
+
+So:
+
+- Very large τ **variance** is bad for maintenance: this is the **Hyperτ Runaway** regime where τ develops huge amplitude inhomogeneities that **don’t** support stable cells.  
+- Some τ **roughness** (edges / gradients) is actually beneficial: it helps define and stabilise proto-cell boundaries.
+
+Grouping by α in the global sweep:
+
+- α = 0.00 → mean maintenance_iou ≈ 0.46, mean proto_life_score ≈ +0.92, low tau_var_final  
+- α = 0.02–0.04 → maintenance_iou drops to ≈ 0.39, proto_life_score becomes negative, tau_var_final roughly triples
+
+Interpretation:
+
+- With these ranges, **strong τ-feedback (high α)** tends to push the system into **Hyperτ Runaway**: large τ structures, but **weak identity**.  
+- The **autopoietic ridge** lives at **low α**, where τ is structured but not explosive.
+
+---
+
+# 4. Q-Ridge Local Exploration
+
+The Q-ridge runs (27 simulations) hold β, γ, feed, kill fixed at the global anchor and vary only α, κ\_τ and τ\_noise.
+
+Even in this small, high-performing neighbourhood we see interesting structure.
+
+---
+
+## 4.1 Uniformly High Maintenance
+
+For the Q-ridge subset:
+
+- maintenance_iou ranges from **0.50 to 0.53**,  
+- mean ≈ **0.515 ± 0.013**.
+
+So *every* point in this local grid yields **strong proto-cell identity**; the sweep maps **how identity degrades or improves** within an already good region.
+
+---
+
+## 4.2 Coherence and τ-Structure Inside the Ridge
+
+In the Q-ridge runs:
+
+- **corr(mean_coherence, maintenance_iou) ≈ +0.89**  
+- **corr(tau_var_final, maintenance_iou) ≈ +0.59**  
+- **corr(tau_grad2_final, maintenance_iou) ≈ +0.63**
+
+In this narrow band:
+
+- Coherence and maintenance are almost **locked together**.  
+- Unlike the global sweep, **higher τ variance and τ-gradient energy within this narrow range actually correlate with better maintenance** — but these τ structures are still only moderate in amplitude (tau_var_final ≈ 0.0035–0.0073).
+
+Interpretation:
+
+- On the **ridge itself**, τ needs to be **structured enough** to wrap around and support the proto-cells.  
+- Off the ridge (in the full global sweep), letting τ grow too large breaks everything.
+
+---
+
+## 4.3 Best Q-Ridge Run
+
+The top proto_life_score run in the Q-ridge subset:
+
+- α = 0.0, β = 0.005, γ = 0.005  
+- feed = 0.035, kill = 0.065  
+- κ\_τ = 0.0, τ\_noise = 0.005  
+- mean_coherence ≈ 0.993  
+- maintenance_iou ≈ 0.53  
+- tau_var_final ≈ 0.0069  
+- tau_grad2_final ≈ 0.0276
+
+Comparing to the global best:
+
+- Global best: τ\_noise = 0.0, slightly lower τ-gradient energy.  
+- Q-ridge best: small τ\_noise sharpens τ edges (higher τ-grad²) without destroying maintenance.
+
+This suggests that **a little τ-noise can actually help sculpt sharper τ “walls” around proto-cells** in the high-performing region.
+
+---
+
+# 5. Spatial Patterns & Morphogenesis
+
+The coupled (A,B,τ,N,mem) system produces structures **not seen in the standard Gray–Scott model**.
+
+---
+
+## 5.1 τ-Stabilized Oscillons (Proto-Cells)
+
+In the best-performing runs, the B-field develops **oscillons**:
+
+- spatially localised “blobs”  
+- that **maintain their boundaries**,  
+- resist diffusion,  
+- and recur in the same regions.
+
+τ thickens around these oscillons through the mem feedback, producing **pockets of slower time** that act like **proto-membranes**.
+
+**FIGURE 1: B-field snapshots over time (best v4 run)**  
+(e.g. `plots/proto_life_v4/best_run_snaps/B_00.png`, `B_10.png`, `B_19.png`)
+
+These snapshots show:
+
+- nucleation of spots from initial noise,  
+- stabilisation into a small set of oscillons,  
+- long-lived maintenance of their identity shapes (high IoU).
+
+---
+
+## 5.2 τ Filamentation and Tubular Growth
+
+In the same runs, τ evolves from uniform to strongly structured:
+
+- At early times, τ is effectively **flat**.  
+- Midway through, τ becomes a **negative image** of B (pixelwise correlation ≈ −0.99).  
+- At late times, τ maintains this complementary pattern (correlation ≈ −0.97).
+
+**FIGURE 2: τ-field evolution (best v4 run)**  
+(e.g. `plots/proto_life_v4/best_run_snaps/tau_00.png`, `tau_10.png`, `tau_19.png`)
+
+τ forms **tubular channels and shells** that:
+
+- wrap around oscillons,  
+- persist independently of instantaneous chemical gradients,  
+- and encode a **geometric memory** of the pattern.
 
 This resembles:
 
 - cytoskeletal precursors  
 - fungal hyphae  
-- neural-like growth patterns
+- neural‑like arborisation  
+
+but here arises purely from **time-density feedback**.
 
 ---
 
-## 4.3 Self-Replication Signatures
+## 5.3 Self-Replication Signatures
 
-In multiple runs, oscillons:
+In multiple runs (particularly on the ridge), we observe sequences where oscillons:
 
-- split into two  
-- drift apart  
-- stabilize independently  
+- split into two lobes,  
+- drift apart,  
+- and then stabilise independently.
 
-This is emergent — no reproduction rule is coded into the model.
+No reproduction rule was coded into the model; division events are emergent consequences of the coupled (A,B,τ,N) dynamics.
 
 **FIGURE 3: Oscillon division event**  
-![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_00.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_10.png)![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/B_19.png)
+(e.g. B snapshots `B_00.png`, `B_10.png`, `B_19.png` from a division run)
+
+These are **proto-replication signatures**: instability of a single oscillatory pocket into two new, stable pockets that then maintain identity.
 
 ---
 
-# 5. Phase Diagram of Proto-Life Behavior  
-Using aggregated metrics, we can classify parameter regimes:
+# 6. Phase Diagram of Proto-Life Behaviour (v4)
 
-| Regime | Characteristics |
-|--------|----------------|
-| **Dead Zone** | Low coherence, high entropy, patterns dissipate |
-| **Metastable Foam** | Short-lived filaments, no stable cells |
-| **Autopoietic Zone** | Oscillons form and persist (proto-life) |
-| **Proto-Metabolic Zone** | τ pockets recycle, sustain oscillons |
-| **Hyperτ Runaway** | τ increases explosively (analogous to cancerous growth) |
+Using the global v4 metrics we can still classify regimes, now in a higher-dimensional space:
+
+| Regime               | Characteristics                                                                 |
+|----------------------|----------------------------------------------------------------------------------|
+| **Dead Zone**        | Low coherence, high entropy, patterns dissipate into noise                      |
+| **Metastable Foam**  | Short-lived filaments, transient hotspots, no long-lived cells                  |
+| **Autopoietic Zone** | Oscillons form and persist (proto-cells), moderate τ-structure, high maintenance |
+| **Proto-Metabolic**  | τ pockets recycle nutrient and sustain oscillons over long times                |
+| **Hyperτ Runaway**   | τ increases explosively; large τ variance, degraded maintenance (cancer-like)   |
 
 **FIGURE 4: Phase Map (α vs β)**  
-![Markdown Logo](https://github.com/aether-machine/dynamic-tau-reaction-diffusion/blob/main/plots/phase_alpha_beta.png)
+(e.g. `plots/proto_life_v4/phase_alpha_beta.png`)
 
-The parameter sets with highest coherence and lowest entropy cluster sharply — evidence of a **true attractor basin**.
+The **Autopoietic / Proto-Metabolic** zones cluster sharply around:
+
+- low α,  
+- intermediate β,  
+- feed ≈ 0.035, kill ≈ 0.065,  
+- small γ, κ\_τ, τ\_noise.
+
+This is the **Q-ridge**: a narrow attractor band in parameter space where **both structure and identity are maximised**.
 
 ---
 
-# 6. Interpretation
+# 7. Interpretation
 
-The emergence of stable, low-entropy, coherent, autopoietic structures strongly suggests:
+The emergence of stable, low-entropy, coherent, autopoietic structures in these v4 + Q-ridge runs strongly suggests:
 
 > **Life is a natural phase of systems with time-density feedback.**
 
-Chemistry is not required — only the coupling of:
+Chemistry is not strictly required — only the coupling of:
 
 1. **Diffusion** (spatial transport)  
 2. **Reaction** (nonlinearity)  
-3. **Memory** (τ)  
+3. **Memory** (τ, via mem and nutrient)  
 
-This is a *minimal physics of life*.
-
----
-
-# 7. Theoretical Significance
-
-### 7.1 Matter is Not Primary — Memory Is  
-Mass becomes the fossilization of change.
-
-Life becomes the *self-maintenance of temporal memory*.
-
-### 7.2 Time Density = Proto-Consciousness  
-Where τ thickens, history accumulates.  
-Where it accumulates, stability forms.  
-Where stability forms, identity emerges.
-
-### 7.3 Emergence of “Self” from τ-Dynamics  
-A proto-cell is simply a region where:
-
-- the future depends on the past  
-- the past reinforces the future  
-
-This is the minimal definition of **selfhood**.
+This is a candidate for a **minimal physics of life**: a phase where **time-density learns to stabilise its own patterns**.
 
 ---
 
-# 8. Next Steps
+# 8. Theoretical Significance
 
-See *roadmap_v2.md* for full detail.  
-Immediate tasks:
+### 8.1 Matter is Not Primary — Memory Is
 
-- metabolic extensions  
-- geometry coupling  
-- stochastic τ perturbation  
-- multi-τ ecologies  
-- τ-history kernels (learning systems)
+In this model, the “stuff” (A and B) is not where identity lives; identity lives in:
+
+- the **τ patterns** (time-density),  
+- and the **mem field** (history of activity).
+
+Matter here is **fossilised change**: the trace left by the flow of time-learning.
+
+### 8.2 Time Density as Proto-Consciousness (Speculative)
+
+Where τ thickens, **history accumulates**.  
+Where history accumulates, **stability forms**.  
+Where stability forms, **identity emerges**.
+
+The τ field functions as a **distributed memory substrate**. It is not “consciousness”, but it **implements the minimal ingredients of self-persistence and self-reference**.
+
+### 8.3 Emergence of “Self” from τ-Dynamics
+
+A proto-cell, in this system, is just a region where:
+
+- the **future depends on the past** (mem → τ, τ → diffusion → mem),  
+- the **past reinforces the future** (positive feedback along the ridge),  
+- boundaries are **maintained** in the face of diffusion and noise.
+
+This gives a **minimal definition of selfhood**:
+
+> A “self” is a pattern that causes its own continued existence.
 
 ---
 
-# 9. Closing Reflection
+# 9. Next Steps
+
+See `roadmap_v2.md` for full detail. In light of the v4 + Q-ridge results, the most immediate directions are:
+
+- **Metabolic extensions**  
+  - richer nutrient dynamics (diffusing N, local sources/sinks),  
+  - explicit energy flows and flux-balancing.
+
+- **Geometry coupling**  
+  - stronger curvature-dependent τ (κ\_τ),  
+  - exploring how τ can sculpt channels and compartments.
+
+- **Stochastic τ perturbation**  
+  - systematically probing how τ-noise shapes robustness and diversity of morphologies.
+
+- **Multi-τ ecologies**  
+  - multiple τ-fields (τ₁, τ₂, …) interacting over the same A,B,N substrate.
+
+- **τ-history kernels (learning systems)**  
+  - multi-timescale mem fields (fast / slow memory),  
+  - Hebbian-like τ updates (correlations, not just magnitude),  
+  - explicit exploration of “learning” within the time-density itself.
+
+---
+
+# 10. Closing Reflection
 
 > *“Life is the universe teaching time how to fold into itself.”*
 
-These simulations show that life-like behavior is not an exception or miracle —  
-it is an attractor of any system where **memory and flow** are coupled.
+These v4 + Q-ridge simulations suggest that life-like behaviour is not an exception or miracle,  
+but an **attractor of systems where memory and flow are coupled**.
 
-This is the first empirical demonstration.
+Here, that coupling takes the form of a **time-density field** learning to maintain its own coherent patterns.
 
+Whether or not this is how life *actually* began, it shows that **the road from physics to proto-life can be surprisingly short** once time itself becomes a dynamical substrate.
