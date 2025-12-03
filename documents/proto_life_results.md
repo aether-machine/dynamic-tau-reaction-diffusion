@@ -28,27 +28,27 @@ The underlying system couples:
 
 The core Gray–Scott reaction term is:
 
-$$\[
+$$\
 R(x,t) = A \, B^2
-\]$$
+\$$
 
 with diffusion and feed/kill terms as usual.
 
 The **memory field** integrates activity:
 
-$$\[
+$$\
 \text{mem}_{t+1} = (1 - \lambda)\,\text{mem}_t + |R_t|
-\]$$
+\$$
 
 where λ is the **memory_decay** parameter.
 
 The **time-density field τ** then evolves according to:
 
-$$\[\frac{\partial \tau}{\partial t} = \alpha \,\text{mem}\]$$
-$$\[- \beta (\tau - \tau_0)\]$$
-$$\[+ \gamma N\]$$
-$$\[+ \kappa_\tau \nabla^2 \tau\]$$
-$$\[+ \eta_\tau(x,t)\]$$
+$$\\frac{\partial \tau}{\partial t} = \alpha \,\text{mem}\$$
+$$\- \beta (\tau - \tau_0)\$$
+$$\+ \gamma N\$$
+$$\+ \kappa_\tau \nabla^2 \tau\$$
+$$\+ \eta_\tau(x,t)\$$
 
 
 where:
@@ -61,18 +61,18 @@ where:
 
 Nutrient is depleted by reaction activity:
 
-$$\[
+$$\
 \frac{\partial N}{\partial t} = - \mu |R|
-\]$$
+\$$
 
 with **nutrient_use** μ.
 
 τ therefore acts as a **spatiotemporal memory field**, thickening where dynamics persist and thinning where they do not. The chemical diffusion is **modulated by τ** via effective diffusion coefficients:
 
-$$\[
+$$\
 D_A^{\text{eff}} = \frac{D_A}{\tau}, \quad
 D_B^{\text{eff}} = \frac{D_B}{\tau}
-\]$$
+\$$
 
 so that **thickened time “focuses” diffusion and structure.**
 
