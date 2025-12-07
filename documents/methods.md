@@ -44,9 +44,9 @@ D_A^{\mathrm{eff}}(x,y,t) = \frac{D_{A0}}{\tau(x,y,t) + \varepsilon}, \quad
 D_B^{\mathrm{eff}}(x,y,t) = \frac{D_{B0}}{\tau(x,y,t) + \varepsilon}
 $$
 
-Substituting \(D^{\mathrm{eff}}\) into the Gray–Scott equations yields a **time-thickening effect**:
-- high \(\tau\) → low effective diffusion → locally “stiff” or persistent regions,
-- low \(\tau\) → high diffusion → locally “fluid” or short-lived regions.
+Substituting $$\(D^{\mathrm{eff}}\)$$ into the Gray–Scott equations yields a **time-thickening effect**:
+- high $$\(\tau\)$$ → low effective diffusion → locally “stiff” or persistent regions,
+- low $$\(\tau\)$$ → high diffusion → locally “fluid” or short-lived regions.
 
 This coupling is the core mechanism by which **structured τ pockets act like a material substrate**: once formed, they selectively slow down motion and reaction spread.
 
@@ -61,19 +61,19 @@ $$+\kappa_\tau \nabla^2 \tau$$
 $$+\eta_\tau(x,y,t)$$
 
 with:
-- \(\alpha\): strength of activity–memory coupling,
-- \(\beta\): relaxation back to baseline \(\tau_0\),
-- \(\gamma\): coupling of nutrient \(N\) into τ,
-- \(\kappa_\tau\): diffusion of τ (smoothing of the time field),
-- \(\eta_\tau\): stochastic τ-noise.
+- $$\(\alpha\)$$: strength of activity–memory coupling,
+- $$\(\beta\)$$: relaxation back to baseline $$\(\tau_0\)$$,
+- $$\(\gamma\)$$: coupling of nutrient $$\(N\)$$ into τ,
+- $$\(\kappa_\tau\)$$: diffusion of τ (smoothing of the time field),
+- $$\(\eta_\tau\)$$: stochastic τ-noise.
 
 The **source term** \(S(x,y,t)\) encodes local “interestingness” of dynamics:
 
 - In early dynamic-τ models:
-  - \(S\) was based directly on the autocatalytic reaction \(R = A B^2\).
+  - $$\(S\)$$ was based directly on the autocatalytic reaction $$\(R = A B^2\)$$.
 
 - In intermediate models (e.g. v2):
-  - we enriched \(S\) with boundary sensitivity:
+  - we enriched $$\(S\)$$ with boundary sensitivity:
     $$
     S = |A B^2| + \lambda \, |\nabla B|
     $$
@@ -88,7 +88,7 @@ The **source term** \(S(x,y,t)\) encodes local “interestingness” of dynamics
 
 ### M3. Nutrient Field and Proto-Metabolic Coupling
 
-A separate nutrient field \(N(x,y,t)\) is introduced to model resource availability.
+A separate nutrient field $$\(N(x,y,t)\)$$ is introduced to model resource availability.
 
 In the v2-style dynamics, we used:
 
@@ -98,9 +98,9 @@ $$+\rho$$
 
 
 where:
-- \(D_N\) is nutrient diffusivity,
-- \(\eta\) controls consumption of N proportional to \(B\),
-- \(\rho\) is a uniform replenishment rate.
+- $$\(D_N\)$$ is nutrient diffusivity,
+- $$\(\eta\)$$ controls consumption of N proportional to $$\(B\)$$,
+- $$\(\rho\)$$ is a uniform replenishment rate.
 
 N is then coupled into τ via the \(\gamma N\) term in the τ equation: **nutrient-rich regions thicken time**, which in turn supports longer-lived structures. This closes a **proto-metabolic loop**:
 
