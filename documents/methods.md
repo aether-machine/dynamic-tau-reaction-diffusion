@@ -124,16 +124,13 @@ To move beyond a simple instantaneous coupling, v4 and v5 introduce **memory fie
 Rather than feeding \(S\) directly into τ, we define one or more **memory accumulators**:
 
 - Single memory:
-  $$
-  \text{mem}_{t+1} = (1 - \lambda)\,\text{mem}_t + |R_t|
-  $$
+
+  $$\text{mem}_{t+1} = (1 - \lambda)\text{mem}_t + |R_t|$$
+
 - Multiscale memory:
-  $$
-  \text{mem}^{\mathrm{fast}}_{t+1} = (1 - \lambda_f)\,\text{mem}^{\mathrm{fast}}_t + |R_t|
-  $$
-  $$
-  \text{mem}^{\mathrm{slow}}_{t+1} = (1 - \lambda_s)\,\text{mem}^{\mathrm{slow}}_t + |R_t|
-  $$
+
+  $$\text{mem}^{\mathrm{fast}}_{t+1} = (1 - \lambda_f)\text{mem}^{\mathrm{fast}}_t + |R_t|$$
+  $$\text{mem}^{\mathrm{slow}}_{t+1} = (1 - \lambda_s)\text{mem}^{\mathrm{slow}}_t + |R_t|$$
 
 where \(\lambda_f > \lambda_s\). These are then combined into an effective source for τ:
 
