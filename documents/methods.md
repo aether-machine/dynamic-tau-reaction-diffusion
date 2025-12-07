@@ -326,6 +326,7 @@ From the temporal coherence series \(C(t)\), we:
 $$\text{coherence\_osc\_index} = \mathrm{Var}(C_{\text{res}}(t))$$
 
 
+
 This captures **“breathing” in coherence**: runs with non-zero oscillations around a trend exhibit ongoing internal activity even if the global coherence is stable.
 
 ---
