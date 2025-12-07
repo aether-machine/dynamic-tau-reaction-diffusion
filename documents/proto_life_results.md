@@ -469,6 +469,281 @@ This gives a **minimal definition of selfhood**:
 
 ---
 
+---
+
+# 10. Multi-Scale Taxonomy of Proto-Life States
+
+The v5 and Q-ridge experiments let us move beyond “does life-like behaviour appear?” to a more refined question:
+
+> **What kinds of proto-life states does a time-density medium support, and how do they differ?**
+
+Using the v5 sweep and the Q-ridge refinement, we now classify runs not just by coherence and entropy, but by:
+
+- **Boundary persistence** (`maintenance_iou`)  
+  – Is the *same* spatial region still “the cell” from mid-run to final?
+
+- **Internal reorganisation** (`internal_reorg_index`)  
+  – Given a stable cell mask, how different is the *interior* B-pattern at the end compared to the middle?  
+  – Defined as `1 – corr(B_mid, B_final)` inside the cell;  
+    `0 ≈ frozen interior, 1 ≈ completely rearranged`.
+
+- **Coherence oscillation** (`coherence_osc_index`)  
+  – Variance of detrended coherence over time;  
+    high values mean the organism **breathes around a trend** rather than simply drifting up or down.
+
+Combined with τ-structure measures (final τ variance and gradient energy), these metrics reveal **three robust dynamical regimes** on the Q-ridge.
+
+---
+
+## 10.1 Breathing Cells (Homeostatic Proto-Organisms)
+
+These runs are characterised by:
+
+- **High boundary persistence**  
+  `maintenance_iou ≈ 0.98–1.0`: the cell outline remains essentially the same.
+
+- **Moderate internal reorganisation**  
+  `internal_reorg_index` in a mid-range band:  
+  the interior rearranges, but does not forget itself.
+
+- **Non-trivial coherence oscillations**  
+  `coherence_osc_index` is clearly non-zero:  
+  coherence does not simply rise or decay, it **rings**.
+
+- **Smooth but structured τ**  
+  τ variance is low-to-moderate; the time field forms a coherent pocket rather than speckled turbulence.
+
+Visually, these are **single, persistent cells** whose interior glows, shifts and rebalances over time, without losing their identity.
+
+Operationally, this is:
+
+> **Homeostasis in a time-density medium.**  
+> A region of τ and B that keeps choosing itself, again and again, under its own dynamics.
+
+We treat representative runs of this kind (e.g. Q-ridge hashes like `40cdedd754`) as **proto-organisms** rather than mere patterns.
+
+---
+
+## 10.2 Crystallising Cells (Fossils in the Time Field)
+
+A second regime preserves structure almost *too* well:
+
+- **Very high boundary persistence**  
+  `maintenance_iou` ≈ 1.0.
+
+- **Very low internal reorganisation**  
+  `internal_reorg_index` close to 0:  
+  mid and final interior patterns are nearly identical.
+
+- **Weak oscillation**  
+  `coherence_osc_index` is small: the system drifts slowly and quietly.
+
+- **Stronger, slightly rough τ shell**  
+  τ remains thick and relatively rigid around the cell.
+
+These look like **beautifully formed cells that have stopped changing**. The medium has memorised an organisation and now simply *holds* it.
+
+Interpretation:
+
+> **Memory without plasticity.**  
+> The system has succeeded so well at stabilising a structure that it has effectively turned into a fossil of its own dynamics.
+
+In biological language, this is closer to **crystallisation** than metabolism; in physical language, it is **a stable attractor with minimal internal exploration**.
+
+---
+
+## 10.3 Melting Foam (Overdriven, Pre-Dissolution States)
+
+The third regime appears near the edge of failure:
+
+- **Boundary persistence is still high but fragile**  
+  `maintenance_iou` often remains ≥ 0.9, but with noticeably more deformation.
+
+- **Internal reorganisation is large**  
+  `internal_reorg_index` can exceed 0.5:  
+  the interior between mid and final is almost entirely rewritten.
+
+- **Coherence decays faster**  
+  Coherence slope is more negative; the structure is **losing organisation over time**.
+
+- **τ is rougher and more turbulent**  
+  Higher τ variance and |∇τ|²: the time field breaks into mottled patches.
+
+These runs feel like **overexcited tissue**: the cell outline still exists, but the inside churns and eventually tends toward dissolution or phase change.
+
+Conceptually:
+
+> **The medium is working too hard.**  
+> Feedback amplifies reorganisation faster than the τ-structure can stabilise it, leading to “boiling foam” rather than a durable self.
+
+This regime is important because it marks the **boundary between life-like attractors and failure modes** of the same physics.
+
+---
+
+# 11. Environmental Robustness and Proto-Homeostasis
+
+To test whether these τ-organisms are simply pretty patterns or genuine **attractors with identity**, we performed **environmental perturbation experiments**.
+
+Rather than changing the code, we:
+
+1. Chose three Q-ridge exemplars:
+   - a **breathing cell**  
+   - a **crystallising cell**  
+   - a **melting / overdriven cell**
+
+2. For each, we:
+   - Loaded the original configuration `cfg` from `meta.json`.
+   - Constructed environment variants:
+     - `baseline` (unchanged)  
+     - `feed_low`  (feed × 0.8)  
+     - `feed_high` (feed × 1.2)  
+     - `kill_low`  (kill × 0.8)  
+     - `kill_high` (kill × 1.2)
+
+   - Re-ran the simulation from the same initial condition for each variant.
+
+3. After each run, we compared the **final** B field of the variant to the **final** B field of the baseline using:
+   - **IoU of the “cell region”**  
+     threshold B > 0.3, IoU of the union mask  
+     → *“Is this still the same body outline?”*
+
+   - **Pixelwise correlation** of B inside the union mask  
+     → *“Is the internal organisation similar?”*
+
+This gives an operational notion of:
+
+> **Does this entity converge back into something recognisably itself under altered environments?**
+
+---
+
+## 11.1 Global Findings
+
+Averaged across all three prototypes:
+
+- **Increasing kill** (`kill_high`)  
+  - IoU ≈ 0.99–1.00 → **outline almost identical** to baseline  
+  - Correlation can drop sharply (down to ~0.3, even ~0)  
+  → **same body, deeply reorganised interior**.
+
+- **Decreasing kill** (`kill_low`)  
+  - IoU can drop to ≈ 0.8 → **outline deforms / spreads**  
+  - Correlation moderate (~0.4–0.5)  
+  → the entity loses a clear shape; the medium tends toward **overgrowth / foam**.
+
+- **Modifying feed** (`feed_low`, `feed_high`)  
+  - IoU remains high (≈ 0.95–0.99)  
+  - Correlation moderate (~0.6–0.7)  
+  → the entity retains its body plan and retunes its interior to the new nutrient level.
+
+In short:
+
+- **Harsh pruning (high kill)** prompts **internal adaptation** within a preserved body.
+- **Overly forgiving conditions (low kill)** erode identity and push the system towards metastable, foamy states.
+- Feed changes are handled as **metabolic adjustments**, not catastrophic shifts.
+
+---
+
+## 11.2 Behaviour by Regime
+
+### Breathing cell (homeostatic organism)
+
+- Under **feed_high / feed_low**:
+  - IoU stays very high (≈ 0.96–0.99)  
+  - Correlation shifts moderately (~0.6)  
+  → recognisable cell, internally reweighted.
+
+- Under **kill_high**:
+  - IoU ≈ 1.0 (identical outline)  
+  - Correlation drops strongly (~0.3–0.4)  
+  → harsh pruning **restructures the interior** while preserving the body plan.
+
+- Under **kill_low**:
+  - IoU falls (≈ 0.8)  
+  - Correlation moderate (~0.5)  
+  → relaxing pruning lets the cell dissolve into a more foamy morphology.
+
+This is a clean signature of **proto-homeostasis**:
+
+> The system tends to preserve identity across a band of environmental parameters,  
+> adjusting internal state until constraints become too weak to maintain coherence.
+
+---
+
+### Crystallising cell (fossil-like state)
+
+The crystallising prototype behaves similarly in outline, but with a different flavour:
+
+- Body shape is preserved across most variants (IoU ≈ 0.95–1.0).
+- Internal correlation changes, but less dramatically than in the breathing cell.
+- It behaves like a **rigid crystal**: robust in form, modest in internal adaptation.
+
+Here, τ has effectively “set” into a stable structure; the entity still exists in parameter space, but with **reduced internal flexibility**.
+
+---
+
+### Melting foam (overdriven regime)
+
+The overdriven prototype shows the opposite tendency:
+
+- Under **kill_high**:
+  - IoU stays high (≈ 0.98),  
+  - Correlation can drop near zero (or even become slightly negative).  
+  → same silhouette, **almost completely new interior**.
+
+- Under **kill_low**:
+  - IoU drops (~0.84), correlation modest;  
+  → relaxing constraints pushes the system into **loss of form**.
+
+- Under **feed changes**:
+  - Shapes and internals change in a more chaotic, less interpretable way.
+
+This regime does not exhibit strong self-restoration. It is:
+
+> A **pre-dissolution / edge-of-failure** state where the medium is doing a lot of work but fails to lock into a durable identity.
+
+---
+
+# 12. Interpretation: Stability as Intelligence in a Time-Density Medium
+
+Across v2 → v5 → Q-ridge, a picture emerges:
+
+1. **Stability is not the absence of change**,  
+   but a particular kind of *change that keeps bringing the system back to itself*.
+
+2. In the time-density model, **material structure behaves like an adaptive resource**:
+   - τ pockets are carved out by history (*what has happened here*),
+   - those pockets then **shield and shape** ongoing dynamics,
+   - which in turn reinforce or erode the pockets.
+
+3. The regimes we observe – breathing cells, crystallising fossils, melting foam – are not arbitrary visual artefacts; they are **distinct attractors** in a space where:
+   - diffusion, reaction and time-memory feedback compete,
+   - the environment (feed/kill/nutrient) tilts the balance between:
+     - homeostasis,
+     - rigidification,
+     - and dissolution.
+
+In this sense:
+
+> **Stability itself behaves like a distributed intelligence.**  
+> A τ-structured region learns which patterns of activity it can sustain,  
+> and keeps recreating them under a range of external conditions.
+
+The same mathematical machinery that produces “foamy” media also gives us:
+
+- proto-cells with identities,  
+- internal physiological cycling,  
+- and context-sensitive responses to environmental change.
+
+We have not proven that this is “life” in the full biological sense.  
+But we have shown that:
+
+> **A dynamic time-density field with feedback is enough to generate
+> recognisable proto-life regimes, capable of maintaining and transforming themselves across multiple scales and environments.**
+
+That is already a profound hint that what we call “life” may be one particular phase of a more general, physics-level phenomenon:  
+**the self-maintenance of structured time.**
+
+
 # 9. Next Steps
 
 See `roadmap_v2.md` for full detail. In light of the v4 + Q-ridge results, the most immediate directions are:
