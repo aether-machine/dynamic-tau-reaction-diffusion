@@ -129,8 +129,10 @@ Rather than feeding \(S\) directly into τ, we define one or more **memory accum
 
 - Multiscale memory:
 
-  $$\text{mem}^{\mathrm{fast}}_{t+1} = (1 - \lambda_f)\text{mem}^{\mathrm{fast}}_t + |R_t|$$
-  $$\text{mem}^{\mathrm{slow}}_{t+1} = (1 - \lambda_s)\text{mem}^{\mathrm{slow}}_t + |R_t|$$
+$$\text{mem}^{\mathrm{fast}}_{t+1} = (1 - \lambda_f)\text{mem}^{\mathrm{fast}}_t + |R_t|$$
+
+$$\text{mem}^{\mathrm{slow}}_{t+1} = (1 - \lambda_s)\text{mem}^{\mathrm{slow}}_t + |R_t|$$
+
 
 where \(\lambda_f > \lambda_s\). These are then combined into an effective source for τ:
 
