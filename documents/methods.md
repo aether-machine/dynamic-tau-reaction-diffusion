@@ -323,9 +323,8 @@ From the temporal coherence series \(C(t)\), we:
 2. Subtract the trend to obtain residuals \(C_{\mathrm{res}}(t)\),
 3. Define:
 
-$$
-\mathrm{coherence\_osc\_index} = \mathrm{Var}(C_{\mathrm{res}}(t))
-$$
+$$\text{coherence\_osc\_index} = \operatorname{Var}\bigl(C_{\mathrm{res}}(t)\bigr)$$
+
 
 This captures **“breathing” in coherence**: runs with non-zero oscillations around a trend exhibit ongoing internal activity even if the global coherence is stable.
 
