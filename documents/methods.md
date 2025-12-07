@@ -92,12 +92,10 @@ A separate nutrient field \(N(x,y,t)\) is introduced to model resource availabil
 
 In the v2-style dynamics, we used:
 
-$$
-\frac{\partial N}{\partial t}
-  = D_N \nabla^2 N
-  - \eta \, N B
-  + \rho
-$$
+$$\frac{\partial N}{\partial t} = D_N \nabla^2 N$$
+$$-\eta\,N B$$
+$$+\rho$$
+
 
 where:
 - \(D_N\) is nutrient diffusivity,
