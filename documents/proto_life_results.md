@@ -420,56 +420,7 @@ This is the **Q-ridge**: a narrow attractor band in parameter space where **both
 
 ---
 
-# 7. Interpretation
-
-The emergence of stable, low-entropy, coherent, autopoietic structures in these v4 + Q-ridge runs strongly suggests:
-
-> **Life is a natural phase of systems with time-density feedback.**
-
-Chemistry is not strictly required — only the coupling of:
-
-1. **Diffusion** (spatial transport)  
-2. **Reaction** (nonlinearity)  
-3. **Memory** (τ, via mem and nutrient)  
-
-This is a candidate for a **minimal physics of life**: a phase where **time-density learns to stabilise its own patterns**.
-
----
-
-# 8. Theoretical Significance
-
-### 8.1 Matter is Not Primary — Memory Is
-
-In this model, the “stuff” (A and B) is not where identity lives; identity lives in:
-
-- the **τ patterns** (time-density),  
-- and the **mem field** (history of activity).
-
-Matter here is **fossilised change**: the trace left by the flow of time-learning.
-
-### 8.2 Time Density as Proto-Consciousness (Speculative)
-
-Where τ thickens, **history accumulates**.  
-Where history accumulates, **stability forms**.  
-Where stability forms, **identity emerges**.
-
-The τ field functions as a **distributed memory substrate**. It is not “consciousness”, but it **implements the minimal ingredients of self-persistence and self-reference**.
-
-### 8.3 Emergence of “Self” from τ-Dynamics
-
-A proto-cell, in this system, is just a region where:
-
-- the **future depends on the past** (mem → τ, τ → diffusion → mem),  
-- the **past reinforces the future** (positive feedback along the ridge),  
-- boundaries are **maintained** in the face of diffusion and noise.
-
-This gives a **minimal definition of selfhood**:
-
-> A “self” is a pattern that causes its own continued existence.
-
----
-
-# 9. Multi-Scale Taxonomy of Proto-Life States
+# 7. Multi-Scale Taxonomy of Proto-Life States
 
 The v5 and Q-ridge experiments let us move beyond “does life-like behaviour appear?” to a more refined question:
 
@@ -493,7 +444,7 @@ Combined with τ-structure measures (final τ variance and gradient energy), the
 
 ---
 
-## 9.1 Breathing Cells (Homeostatic Proto-Organisms)
+## 7.1 Breathing Cells (Homeostatic Proto-Organisms)
 
 These runs are characterised by:
 
@@ -522,7 +473,7 @@ We treat representative runs of this kind (e.g. Q-ridge hashes like `40cdedd754`
 
 ---
 
-## 9.2 Crystallising Cells (Fossils in the Time Field)
+## 7.2 Crystallising Cells (Fossils in the Time Field)
 
 A second regime preserves structure almost *too* well:
 
@@ -550,7 +501,7 @@ In biological language, this is closer to **crystallisation** than metabolism; i
 
 ---
 
-## 9.3 Melting Foam (Overdriven, Pre-Dissolution States)
+## 7.3 Melting Foam (Overdriven, Pre-Dissolution States)
 
 The third regime appears near the edge of failure:
 
@@ -578,7 +529,7 @@ This regime is important because it marks the **boundary between life-like attra
 
 ---
 
-# 10. Environmental Robustness and Proto-Homeostasis
+# 8. Environmental Robustness and Proto-Homeostasis
 
 To test whether these τ-organisms are simply pretty patterns or genuine **attractors with identity**, we performed **environmental perturbation experiments**.
 
@@ -614,7 +565,7 @@ This gives an operational notion of:
 
 ---
 
-## 10.1 Global Findings
+## 8.1 Global Findings
 
 Averaged across all three prototypes:
 
@@ -641,7 +592,7 @@ In short:
 
 ---
 
-## 10.2 Behaviour by Regime
+## 8.2 Behaviour by Regime
 
 ### Breathing cell (homeostatic organism)
 
@@ -701,7 +652,7 @@ This regime does not exhibit strong self-restoration. It is:
 
 ---
 
-# 11. Interpretation: Stability as Intelligence in a Time-Density Medium
+# 9. Interpretation: Stability as Intelligence in a Time-Density Medium
 
 Across v2 → v5 → Q-ridge, a picture emerges:
 
