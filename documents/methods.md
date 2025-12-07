@@ -54,12 +54,14 @@ This coupling is the core mechanism by which **structured τ pockets act like a 
 
 The evolution of \(\tau\) in the late models (v4–v5) takes the generic form:
 
-$$\\frac{\partial \tau}{\partial t} = \alpha \,\text{mem}\$$
-$$\- \beta (\tau - \tau_0)\$$
-$$\+ \gamma N\$$
-$$\+ \kappa_\tau \nabla^2 \tau\$$
-$$\+ \eta_\tau(x,t)\$$
-
+$$
+\frac{\partial \tau}{\partial t}
+  = \alpha \, S(x,y,t)
+  - \beta \, (\tau - \tau_0)
+  + \gamma \, N(x,y,t)
+  + \kappa_\tau \nabla^2 \tau
+  + \eta_\tau(x,y,t)
+$$
 
 with:
 - \(\alpha\): strength of activity–memory coupling,
