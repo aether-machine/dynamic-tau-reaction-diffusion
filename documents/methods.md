@@ -323,7 +323,8 @@ From the temporal coherence series \(C(t)\), we:
 2. Subtract the trend to obtain residuals \(C_{\mathrm{res}}(t)\),
 3. Define:
 
-$$\text{coherence\_osc\_index} = \operatorname{Var}\bigl(C_{\text{res}}(t)\bigr)$$
+$$\text{coherence\_osc\_index} = \text{Var}\big(C_{\text{res}}(t)\big)$$
+
 
 
 
