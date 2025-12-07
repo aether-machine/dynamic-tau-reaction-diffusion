@@ -469,9 +469,7 @@ This gives a **minimal definition of selfhood**:
 
 ---
 
----
-
-# 10. Multi-Scale Taxonomy of Proto-Life States
+# 9. Multi-Scale Taxonomy of Proto-Life States
 
 The v5 and Q-ridge experiments let us move beyond “does life-like behaviour appear?” to a more refined question:
 
@@ -495,7 +493,7 @@ Combined with τ-structure measures (final τ variance and gradient energy), the
 
 ---
 
-## 10.1 Breathing Cells (Homeostatic Proto-Organisms)
+## 9.1 Breathing Cells (Homeostatic Proto-Organisms)
 
 These runs are characterised by:
 
@@ -524,7 +522,7 @@ We treat representative runs of this kind (e.g. Q-ridge hashes like `40cdedd754`
 
 ---
 
-## 10.2 Crystallising Cells (Fossils in the Time Field)
+## 9.2 Crystallising Cells (Fossils in the Time Field)
 
 A second regime preserves structure almost *too* well:
 
@@ -552,7 +550,7 @@ In biological language, this is closer to **crystallisation** than metabolism; i
 
 ---
 
-## 10.3 Melting Foam (Overdriven, Pre-Dissolution States)
+## 9.3 Melting Foam (Overdriven, Pre-Dissolution States)
 
 The third regime appears near the edge of failure:
 
@@ -580,7 +578,7 @@ This regime is important because it marks the **boundary between life-like attra
 
 ---
 
-# 11. Environmental Robustness and Proto-Homeostasis
+# 10. Environmental Robustness and Proto-Homeostasis
 
 To test whether these τ-organisms are simply pretty patterns or genuine **attractors with identity**, we performed **environmental perturbation experiments**.
 
@@ -616,7 +614,7 @@ This gives an operational notion of:
 
 ---
 
-## 11.1 Global Findings
+## 10.1 Global Findings
 
 Averaged across all three prototypes:
 
@@ -643,7 +641,7 @@ In short:
 
 ---
 
-## 11.2 Behaviour by Regime
+## 10.2 Behaviour by Regime
 
 ### Breathing cell (homeostatic organism)
 
@@ -703,7 +701,7 @@ This regime does not exhibit strong self-restoration. It is:
 
 ---
 
-# 12. Interpretation: Stability as Intelligence in a Time-Density Medium
+# 11. Interpretation: Stability as Intelligence in a Time-Density Medium
 
 Across v2 → v5 → Q-ridge, a picture emerges:
 
@@ -742,40 +740,3 @@ But we have shown that:
 
 That is already a profound hint that what we call “life” may be one particular phase of a more general, physics-level phenomenon:  
 **the self-maintenance of structured time.**
-
-
-# 9. Next Steps
-
-See `roadmap_v2.md` for full detail. In light of the v4 + Q-ridge results, the most immediate directions are:
-
-- **Metabolic extensions**  
-  - richer nutrient dynamics (diffusing N, local sources/sinks),  
-  - explicit energy flows and flux-balancing.
-
-- **Geometry coupling**  
-  - stronger curvature-dependent τ (κ\_τ),  
-  - exploring how τ can sculpt channels and compartments.
-
-- **Stochastic τ perturbation**  
-  - systematically probing how τ-noise shapes robustness and diversity of morphologies.
-
-- **Multi-τ ecologies**  
-  - multiple τ-fields (τ₁, τ₂, …) interacting over the same A,B,N substrate.
-
-- **τ-history kernels (learning systems)**  
-  - multi-timescale mem fields (fast / slow memory),  
-  - Hebbian-like τ updates (correlations, not just magnitude),  
-  - explicit exploration of “learning” within the time-density itself.
-
----
-
-# 10. Closing Reflection
-
-> *“Life is the universe teaching time how to fold into itself.”*
-
-These v4 + Q-ridge simulations suggest that life-like behaviour is not an exception or miracle,  
-but an **attractor of systems where memory and flow are coupled**.
-
-Here, that coupling takes the form of a **time-density field** learning to maintain its own coherent patterns.
-
-Whether or not this is how life *actually* began, it shows that **the road from physics to proto-life can be surprisingly short** once time itself becomes a dynamical substrate.
