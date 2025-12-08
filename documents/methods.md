@@ -75,7 +75,7 @@ The **source term** $$\(S(x,y,t)\)$$ encodes local “interestingness” of dyna
 - In intermediate models (e.g. v2):
   - we enriched $$\(S\)$$ with boundary sensitivity:
     $$
-    S = |A B^2| + \lambda \, |\nabla B|
+    S = |A B^2|$$ + $$\lambda \$$, $$|\nabla B|
     $$
   - This made τ respond not only to high reaction activity, but also to **sharp spatial gradients** (cell-like edges).
 
