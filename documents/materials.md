@@ -196,92 +196,73 @@ python analyze_internal_v5.py --csv plots/proto_life_v5/runs_summary_v5_qridge.c
 # Produces:
 # plots/proto_life_v5/runs_summary_v5_qridge_with_internal.csv
 ```
-These augmented tables are the basis for the classification into “breathing cells”, “crystallising cells”, and “melting foam” regimes.
+These augmented tables are the basis for the classification into **“breathing cells”**, **“crystallising cells”**, and **“melting foam”** regimes.
 
-M10.6. Environmental perturbation experiments
+### M10.6. Environmental perturbation experiments
 
 To probe robustness and proto-homeostasis, we use:
 
-run_env_tests_v5.py
+- `run_env_tests_v5.py`
 
 This script:
 
-takes a list of candidate run hashes under outputs/dynamic_tau_v5_qridge/
-(e.g. 40cdedd754, 94392f5ff1, 6fc841af45)
+- takes a list of candidate run hashes under `outputs/dynamic_tau_v5_qridge/`
+  (e.g. `40cdedd754`, `94392f5ff1`, `6fc841af45`)
 
-for each candidate:
+- for each candidate:
+  - loads the original config from `meta.json`
+  - constructs environment variants by scaling `feed` and `kill`:
+    - `baseline`
+    - `feed_low`
+    - `feed_high`
+    - `kill_low`
+    - `kill_high`
+  - runs `dynamic_tau_v5.run_simulation` for each variant into  
+    `outputs/dynamic_tau_v5_env/<hash>/<variant>/`
 
-loads the original config from meta.json
+- for each variant, compares the final B snapshot to the baseline final B, computing:
+  - `iou_vs_baseline` (shape similarity)
+  - `corr_vs_baseline` (internal organisation similarity)
 
-constructs environment variants by scaling feed and kill:
-
-baseline
-
-feed_low
-
-feed_high
-
-kill_low
-
-kill_high
-
-runs dynamic_tau_v5.run_simulation for each variant into
-outputs/dynamic_tau_v5_env/<hash>/<variant>/
-
-for each variant, compares the final B snapshot to the baseline final B, computing:
-
-iou_vs_baseline (shape similarity)
-
-corr_vs_baseline (internal organisation similarity)
-
-writes a summary CSV:
-
-plots/proto_life_v5/env_tests_summary.csv
+- writes a summary CSV:
+  - `plots/proto_life_v5/env_tests_summary.csv`
 
 Example invocation:
 
+```bash
 python run_env_tests_v5.py --candidates 40cdedd754 94392f5ff1 6fc841af45
-
+```
 This provides the empirical basis for the statements about homeostatic cells, fossil-like states, and overdriven / melting regimes under environmental changes.
 
-M10.7. Reproducibility and folder structure
+### M10.7. Reproducibility and folder structure
 
 The key directories created by the pipeline are:
 
-outputs/dynamic_tau_v5/
-– raw global sweep runs (metrics.csv, snapshots, meta)
+- `outputs/dynamic_tau_v5/`  
+  – raw global sweep runs (`metrics.csv`, snapshots, meta)
 
-outputs/dynamic_tau_v5_qridge/
-– focused Q-ridge runs used for fine-grained analysis
+- `outputs/dynamic_tau_v5_qridge/`  
+  – focused Q-ridge runs used for fine-grained analysis
 
-outputs/dynamic_tau_v5_env/
-– environment-variant runs for selected candidates
+- `outputs/dynamic_tau_v5_env/`  
+  – environment-variant runs for selected candidates
 
-plots/proto_life_v5/
-– summary CSVs and aggregate plots, including:
-
-runs_summary_v5.csv
-
-runs_summary_v5_qridge.csv
-
-runs_summary_v5_qridge_with_internal.csv
-
-env_tests_summary.csv
-
-phase maps (e.g. coherence vs α–β)
-
-coherence/entropy scatterplots
-
-best-run montages and internal cross-sections
+- `plots/proto_life_v5/`  
+  – summary CSVs and aggregate plots, including:
+  - `runs_summary_v5.csv`
+  - `runs_summary_v5_qridge.csv`
+  - `runs_summary_v5_qridge_with_internal.csv`
+  - `env_tests_summary.csv`
+  - phase maps (e.g. coherence vs α–β)
+  - coherence/entropy scatterplots
+  - best-run montages and internal cross-sections
 
 Together, these scripts and artefacts constitute a complete, reproducible pipeline to:
 
-Generate dynamic τ–coupled reaction–diffusion runs over parameter space.
-
-Identify regions of interest (Q-ridge) where life-like behaviour occurs.
-
-Quantify morphology, internal dynamics, and τ structure.
-
-Test robustness under environmental perturbations.
+1. **Generate** dynamic τ–coupled reaction–diffusion runs over parameter space.  
+2. **Identify** regions of interest (Q-ridge) where life-like behaviour occurs.  
+3. **Quantify** morphology, internal dynamics, and τ structure.  
+4. **Test** robustness under environmental perturbations.
 
 All methods described in this document correspond directly to these publicly available scripts and the data products they generate.
+
