@@ -120,7 +120,7 @@ The chemical subsystem is a 2-species Gray–Scott system:
 
 The τ equation uses an **activity + memory + resource** source:
 
-- activity \( S(x,y,t) \) built from \( |A B^2| \) and \( |\nabla B| \),
+- activity $$\( S(x,y,t) \)$$ built from $$\( |A B^2| \)$$ and $$\( |\nabla B| \)$$,
 - optional **memory kernels** (`mem_fast`, `mem_slow`) that integrate activity over time,
 - an optional **resource field** $$\(N(x,y,t)\)$$ that diffuses, is consumed, and replenished:
 
@@ -156,16 +156,16 @@ Outputs are stored under:
 For every run we track:
 
 - **Coherence**  
-  – mean \( \langle |A + iB|^2 \rangle \)
+  – mean $$\( \langle |A + iB|^2 \rangle \)$$
 
 - **Entropy**  
-  – Shannon entropy of \(B\)
+  – Shannon entropy of $$\(B\)$$
 
 - **Energy-like quantity**  
-  – \( \tfrac{1}{2} \langle A^2 + B^2 \rangle \)
+  – $$\( \tfrac{1}{2} \langle A^2 + B^2 \rangle \)$$
 
 - **Autocatalysis**  
-  – mean \( \langle A B^2 \rangle \)
+  – mean $$\( \langle A B^2 \rangle \)$$
 
 - **τ structure**  
   – variance and gradient energy of τ in the final frame
@@ -187,7 +187,7 @@ To move beyond “pretty patterns”, we add morphological and dynamical metrics
   – *Do we keep the same body outline over time?*
 
 - `internal_reorg_index`  
-  – \( 1 - \mathrm{corr}(B_{\text{mid}}, B_{\text{final}}) \) inside the cell mask  
+  – $$\( 1 - \mathrm{corr}(B_{\text{mid}}, B_{\text{final}}) \)$$ inside the cell mask  
   – *How much does the interior reorganise while the body persists?*
 
 - `com_shift_B`  
