@@ -2,7 +2,7 @@
 
 ### M1. Base Reaction–Diffusion Model
 
-All simulations are built on a standard two-species Gray–Scott reaction–diffusion system for fields \(A(x,y,t)\) and \(B(x,y,t)\):
+All simulations are built on a standard two-species Gray–Scott reaction–diffusion system for fields $$\(A(x,y,t)\)$$ and $$\(B(x,y,t)\)$$:
 
 $$
 \frac{\partial A}{\partial t}
