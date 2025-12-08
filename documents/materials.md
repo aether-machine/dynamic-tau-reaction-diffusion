@@ -114,12 +114,86 @@ python simulations/run_sweep_v5.py --mode qridge --workers 4
 ```
 The exact CLI options (--mode, --workers, etc.) are documented in the script header and argument parser.
 
-M10.4. Aggregate analysis and scoring
+### M10.4. Aggregate analysis and scoring
 
 High-level aggregation and scoring of runs are handled by:
 
-analyze_proto_life_v5.py
+- `analyze_proto_life_v5.py`
 
 This script:
 
-Scans a chosen output root, e.g.:
+- scans a chosen output root, e.g.:
+
+  - `outputs/dynamic_tau_v5/`
+  - `outputs/dynamic_tau_v5_qridge/`
+
+- for each run directory that contains:
+
+  - `metrics.csv`
+  - `meta.json` or `summary.json`
+
+  it extracts:
+
+  - configuration parameters (e.g. `feed`, `kill`, τ-parameters, flags)
+  - time-averaged metrics (`mean_coherence`, `mean_entropy`, `mean_autocat`,
+    `std_coherence`, `coherence_slope`, etc.)
+  - τ-structure metrics (`tau_var_final`, `tau_grad2_final`)
+
+- computes composite scores (e.g. `proto_life_score_v5`) based on weighted combinations of:
+
+  - coherence / entropy
+  - autocatalysis
+  - τ-structure features
+
+- writes summary CSVs to:
+
+  - `plots/proto_life_v5/runs_summary_v5.csv`
+  - `plots/proto_life_v5/runs_summary_v5_qridge.csv`
+
+- optionally generates:
+
+  - phase maps (e.g. coherence vs. α–β)
+  - coherence/entropy scatterplots
+  - best-run montages and other diagnostic plots
+
+Example usage:
+
+```bash
+python analyze_proto_life_v5.py \
+    --root outputs/dynamic_tau_v5 \
+    --out plots/proto_life_v5/runs_summary_v5.csv
+
+python analyze_proto_life_v5.py \
+    --root outputs/dynamic_tau_v5_qridge \
+    --out plots/proto_life_v5/runs_summary_v5_qridge.csv
+```
+### M10.5. Internal dynamics metrics
+
+To quantify boundary persistence, internal reorganisation, and coherence oscillation, we use:
+
+- `analyze_internal_v5.py`
+
+This script takes an existing summary CSV (e.g. `runs_summary_v5_qridge.csv`), re-visits each run directory, and computes:
+
+- `maintenance_iou`  
+  – IoU between mid and final B-masks (shape persistence)
+
+- `internal_reorg_index`  
+  – 1 minus the correlation between mid and final B inside the cell mask  
+    (internal pattern change without losing the body)
+
+- `com_shift_B`  
+  – centre-of-mass shift of B inside the cell (net movement of mass)
+
+- `coherence_osc_index`  
+  – variance of the detrended coherence time-series (coherence “breathing”)
+
+It writes an augmented CSV alongside the original:
+
+```bash
+python analyze_internal_v5.py --csv plots/proto_life_v5/runs_summary_v5_qridge.csv
+
+# Produces:
+# plots/proto_life_v5/runs_summary_v5_qridge_with_internal.csv
+```
+
