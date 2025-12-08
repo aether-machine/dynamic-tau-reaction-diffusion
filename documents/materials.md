@@ -39,53 +39,61 @@ run_simulation(cfg: dict, outdir: str) -> str
 ```
 where:
 
-cfg is a Python dictionary containing:
+`cfg` is a Python dictionary containing:
 
-grid and numerical parameters (nx, ny, dx, dy, dt, steps)
+- **Grid and numerical parameters**  
+  - `nx`, `ny`, `dx`, `dy`, `dt`, `steps`
 
-Gray–Scott parameters (feed, kill, Da, Db)
+- **Gray–Scott parameters**  
+  - `feed`, `kill`, `Da`, `Db`
 
-τ parameters (tau0, alpha, beta, gamma, tau_min, tau_max, kappa_tau, tau_noise, etc.)
+- **τ parameters**  
+  - `tau0`, `alpha`, `beta`, `gamma`, `tau_min`, `tau_max`, `kappa_tau`, `tau_noise`, etc.
 
-nutrient parameters (use_nutrient, D_N, nutrient_use, nutrient_replenish, …)
+- **Nutrient parameters**  
+  - `use_nutrient`, `D_N`, `nutrient_use`, `nutrient_replenish`, …
 
-memory options (use_multiscale_memory, decay rates, weights)
+- **Memory options**  
+  - `use_multiscale_memory`, decay rates, weights
 
-multi-τ options (num_tau_species, per-species parameters)
+- **Multi-τ options**  
+  - `num_tau_species`, per-species parameters
 
-logging / snapshot settings (snap_every, log_every)
+- **Logging / snapshot settings**  
+  - `snap_every`, `log_every`
 
-outdir is a filesystem path where:
 
-meta.json (or summary.json) stores the configuration,
+`outdir` is a filesystem path where:
 
-metrics.csv stores time-series,
+- `meta.json` (or `summary.json`) stores the configuration
+- `metrics.csv` stores time-series
+- PNG snapshots are written:
+  - `B_snapshot_*.png`
+  - `tau_snapshot_*.png`
+  - `N_snapshot_*.png`
 
-PNG snapshots (B_snapshot_*.png, tau_snapshot_*.png, N_snapshot_*.png) are written.
 
-Early exploratory models (e.g. tau_reaction_diffusion_v2.py) are kept in the repo as archival code illustrating the evolution from a simple single-τ model to the full v5 architecture, but all quantitative results in this document refer to dynamic_tau_v5.py and its sweeps.
+Early exploratory models (e.g. `tau_reaction_diffusion_v2.py`) are kept in the repo as archival code illustrating the evolution from a simple single-τ model to the full v5 architecture, but all quantitative results in this document refer to `dynamic_tau_v5.py` and its sweeps.
 
-M10.3. Parameter sweeps
+---
 
-Parameter sweeps are driven by standalone scripts in simulations/:
+### M10.3. Parameter sweeps
 
-simulations/run_sweep_v5.py
+Parameter sweeps are driven by standalone scripts in `simulations/`:
 
-Constructs a list of configuration dictionaries (cfg objects) sampling:
+- `simulations/run_sweep_v5.py`
 
-feed, kill
+This script:
 
-τ parameters (alpha, beta, gamma, kappa_tau, tau_noise)
+- constructs a list of configuration dictionaries (`cfg` objects) sampling:
+  - `feed`, `kill`
+  - τ parameters (`alpha`, `beta`, `gamma`, `kappa_tau`, `tau_noise`)
+  - nutrient and memory flags
+- optionally restricts sampling to a **Q-ridge** region around previously identified high-coherence / low-entropy configurations
+- supports parallel execution via the Python `multiprocessing` module
+- for each `cfg`, calls:
 
-nutrient and memory flags
-
-Optionally restricts sampling to a Q-ridge region around previously identified high-coherence / low-entropy configurations.
-
-Supports parallel execution via the Python multiprocessing module.
-
-For each cfg, calls:
-
-```bash
+```python
 dynamic_tau_v5.run_simulation(cfg, outdir)
 ```
 Outputs are stored under:
