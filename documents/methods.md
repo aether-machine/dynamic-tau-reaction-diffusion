@@ -15,10 +15,10 @@ $$
 $$
 
 where:
-- \(D_A, D_B\) are diffusion coefficients,
-- \(f\) is the feed rate,
-- \(k\) is the kill (removal) rate,
-- \(A B^2\) is the autocatalytic reaction term.
+- $$\(D_A, D_B\)$$ are diffusion coefficients,
+- $$\(f\)$$ is the feed rate,
+- $$\(k\)$$ is the kill (removal) rate,
+- $$\(A B^2\)$$ is the autocatalytic reaction term.
 
 Spatial derivatives are discretised on a 2D periodic grid using a five-point Laplacian:
 
@@ -31,9 +31,9 @@ Time integration is explicit Euler with timestep \(\Delta t\). All fields are cl
 
 ---
 
-### M2. Dynamic Time-Density Field \(\tau(x,t)\)
+### M2. Dynamic Time-Density Field $$\(\tau(x,t)\)$$
 
-The key extension is a **dynamic time-density field** \(\tau(x,y,t)\) that modulates diffusion and stores a memory of past activity.
+The key extension is a **dynamic time-density field** $$\(\tau(x,y,t)\)$$ that modulates diffusion and stores a memory of past activity.
 
 #### M2.1. Diffusion–time coupling
 
@@ -52,7 +52,7 @@ This coupling is the core mechanism by which **structured τ pockets act like a 
 
 #### M2.2. τ evolution and source term
 
-The evolution of \(\tau\) in the late models (v4–v5) takes the generic form:
+The evolution of $$\(\tau\)$$ in the late models (v4–v5) takes the generic form:
 
 $$\frac{\partial \tau}{\partial t} = \alpha\,S(x,y,t)$$
 $$-\beta\,(\tau - \tau_0)$$
@@ -67,7 +67,7 @@ with:
 - $$\(\kappa_\tau\)$$: diffusion of τ (smoothing of the time field),
 - $$\(\eta_\tau\)$$: stochastic τ-noise.
 
-The **source term** \(S(x,y,t)\) encodes local “interestingness” of dynamics:
+The **source term** $$\(S(x,y,t)\)$$ encodes local “interestingness” of dynamics:
 
 - In early dynamic-τ models:
   - $$\(S\)$$ was based directly on the autocatalytic reaction $$\(R = A B^2\)$$.
@@ -102,7 +102,7 @@ where:
 - $$\(\eta\)$$ controls consumption of N proportional to $$\(B\)$$,
 - $$\(\rho\)$$ is a uniform replenishment rate.
 
-N is then coupled into τ via the \(\gamma N\) term in the τ equation: **nutrient-rich regions thicken time**, which in turn supports longer-lived structures. This closes a **proto-metabolic loop**:
+N is then coupled into τ via the $$\(\gamma N\)$$ term in the τ equation: **nutrient-rich regions thicken time**, which in turn supports longer-lived structures. This closes a **proto-metabolic loop**:
 
 1. Nutrient supports reaction activity.
 2. Activity and gradients increase τ.
@@ -121,7 +121,7 @@ To move beyond a simple instantaneous coupling, v4 and v5 introduce **memory fie
 
 #### M4.1. Memory fields
 
-Rather than feeding \(S\) directly into τ, we define one or more **memory accumulators**:
+Rather than feeding $$\(S\)$$ directly into τ, we define one or more **memory accumulators**:
 
 - Single memory:
 
@@ -134,7 +134,7 @@ $$\text{mem}^{\mathrm{fast}}_{t+1} = (1 - \lambda_f)\text{mem}^{\mathrm{fast}}_t
 $$\text{mem}^{\mathrm{slow}}_{t+1} = (1 - \lambda_s)\text{mem}^{\mathrm{slow}}_t + |R_t|$$
 
 
-where \(\lambda_f > \lambda_s\). These are then combined into an effective source for τ:
+where $$\(\lambda_f > \lambda_s\)$$. These are then combined into an effective source for τ:
 
 $$
 S(x,y,t) = w_f \,\text{mem}^{\mathrm{fast}} + w_s \,\text{mem}^{\mathrm{slow}}
@@ -144,7 +144,7 @@ This structure allows τ to respond both to **recent activity** and to **long-te
 
 #### M4.2. Multiple τ species
 
-In some v5 configurations, we extend \(\tau\) to \(\{\tau_1, \tau_2, \dots\}\), each with its own parameters \((\alpha_i, \beta_i, \gamma_i, \kappa_{\tau_i})\). Each τ-field sees the same underlying chemical activity but reacts with its own timescale and smoothing.
+In some v5 configurations, we extend $$\(\tau\)$$ to $$\(\{\tau_1, \tau_2, \dots\}\)$$, each with its own parameters $$\((\alpha_i, \beta_i, \gamma_i, \kappa_{\tau_i})\)$$. Each τ-field sees the same underlying chemical activity but reacts with its own timescale and smoothing.
 
 This defines **multi-layered time scaffolds**:
 - one τ may respond quickly and locally,
