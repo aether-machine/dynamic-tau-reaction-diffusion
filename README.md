@@ -124,10 +124,9 @@ The τ equation uses an **activity + memory + resource** source:
 - optional **memory kernels** (`mem_fast`, `mem_slow`) that integrate activity over time,
 - an optional **resource field** $$\(N(x,y,t)\)$$ that diffuses, is consumed, and replenished:
 
-  $$\frac{\partial N}{\partial t}
-    = D_N \nabla^2 N
-    - \eta N B
-    + \rho$$
+$$\frac{\partial N}{\partial t} = D_N \nabla^2 N$$
+$$-\eta\,N B$$
+$$+\rho$$
 
 The result is a **time-density medium** where:
 
