@@ -347,7 +347,11 @@ This work will be archived in Zenodo upon Version 1.0 release.
 Example citation:
 
 [Author Name], Time-Density Physics: Proto-Life from Temporal Memory Fields.
-GitHub (2025), Zenodo DOI: 10.5281/zenodo.XXXXXXX (to be updated)
+GitHub (2025), 
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17856677.svg)](https://doi.org/10.5281/zenodo.17856677)
+
+
 
 9. Roadmap
 
