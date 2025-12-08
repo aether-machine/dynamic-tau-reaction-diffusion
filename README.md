@@ -1,264 +1,374 @@
-# Time-Density Physics: From Chemical Transformations to Proto-Life
+# Time-Density Physics: From Reaction–Diffusion to Proto-Life
 
 > **“Matter is the memory of change — life is memory learning to organize itself.”**
 
-This repository develops and explores a new physical principle:  
-**variable time density (τ)** as a fundamental field that couples to chemical reaction–diffusion systems, induces coherence, and can produce **proto-life structures**.
+This repository develops and explores a new physical principle:
 
-The work began with a narrow question:
+> **dynamic time density** $$\( \tau(x,y,t) \)$$ as a fundamental field  
+> that couples to reaction–diffusion systems, induces coherence,  
+> and produces **proto-life structures**.
+
+What began as a narrow question —
 
 > *Can temporal density fields influence chemical and structural transformations?*
 
-It has now expanded into a general framework for understanding:
+— has evolved into a general framework for understanding:
 
 - self-organization  
 - autocatalytic dynamics  
 - emergent coherence  
 - proto-metabolic structures  
 - memory-driven morphogenesis  
+- environmental robustness of “proto-organisms”
 
-all arising from **τ-modulated feedback loops**.
+all arising from **τ-modulated feedback loops** in a continuous medium.
 
-This repository contains the simulations, analysis, and conceptual framework behind this discovery.
+This repository contains the simulations, analysis pipeline, and results behind these experiments.
 
 ---
 
 ## 1. Conceptual Overview
 
-### **Time Density (τ)**
-τ(x,t) represents **local time flow thickness** — how densely history accumulates.  
-Where τ is high, processes slow; where τ is low, processes accelerate.
+### 1.1 Time Density (τ)
 
-**Mass = integral of change**  
-**Gravity = gradient of coherence (memory)**  
-**Life = self-reinforcing pockets of persistent coherence**
+We model a **time-density field** $$\( \tau(x,y,t) \)$$ that represents local “thickness of time” or **memory density**:
 
-In this framework:
+- where $$\( \tau \)$$ is high, processes slow and history accumulates;
+- where $$\( \tau \)$$ is low, processes are more labile and quickly forgotten.
 
-- **matter** is the fossilization of change  
-- **chemistry** is time-field manipulation  
-- **life** emerges when a τ-field begins self-referencing and self-stabilizing  
+In this picture:
+
+- **Matter** ≈ fossilised change in a time-density field  
+- **Chemistry** ≈ structured manipulation of that field  
+- **Life** ≈ regions where the time field learns to reinforce its own patterns
+
+Mathematically, τ evolves according to a feedback equation of the form:
+
+$$\frac{\partial \tau}{\partial t}
+  = \alpha\,S(x,y,t)
+  - \beta\,(\tau - \tau_0)
+  + \gamma\,N(x,y,t)
+  + \kappa_\tau \nabla^2 \tau
+  + \eta_\tau(x,y,t)
+$$
+
+where:
+
+- $$\( S(x,y,t) \)$$ is a **local activity / memory source** (reaction + gradients),
+- $$\( N(x,y,t) \)$$ is a **resource field** (“nutrient”),
+- $$\( \alpha, \beta, \gamma, \kappa_\tau \)$$ control feedback, relaxation, resource coupling, and τ-smoothing,
+- $$\( \eta_\tau \)$$ is τ-noise.
+
+The **key idea** is that τ both:
+
+1. **remembers** where interesting dynamics have happened, and  
+2. **feeds back** to those dynamics by modulating diffusion and stability.
 
 ---
 
 ## 2. Simulation Progression
 
-The repository now contains **five major simulation modules**, each building on the last.
+The project has gone through several generations of models, converging on a robust **dynamic τ + Gray–Scott** framework (v5) where proto-life behaviour is most clearly expressed.
+
+### 2.1 Early prototypes (v1–v3)
+
+These are kept as **archival / exploratory** code and notebooks:
+
+- τ-modulated diffusion (temporal diffusion)
+- τ-modulated reaction rates (temporal catalysis)
+- τ-modulated “phase” behaviour (τ shifting effective criticality)
+
+They established that:
+
+- τ-gradients distort diffusion and reaction fronts,
+- τ can act as a hidden “medium” that focuses or disperses activity,
+- simple feedback is enough to induce complex spatial structure.
+
+### 2.2 Dynamic τ + Reaction–Diffusion (v2–v4)
+
+The first fully coupled PDE experiments combined:
+
+- a Gray–Scott reaction–diffusion system for $$\(A(x,y,t), B(x,y,t)\)$$,
+- a dynamic τ-field that responds to **reaction activity** and **gradients**,
+- an optional resource field $$\(N(x,y,t)\)$$.
+
+The v2 models already produced:
+
+- τ pockets that **stabilised oscillons** (proto-cell structures),
+- tubular τ filaments,
+- visually striking “walling”, “eating” and “tunnelling” behaviours.
+
+The v3–v4 runs generalised this into sweeps over τ-feedback parameters (α, β, γ) and Gray–Scott parameters (feed, kill), revealing regions in parameter space where **coherent, cell-like morphologies** are common.
 
 ---
 
-### ### **🔹 Version 1 — Temporal Diffusion**
+## 3. Dynamic τ v5: Proto-Life and Q-Ridge
 
-“How does a variable τ-field distort diffusion?”
+The current flagship model is:
 
-Equation:
+- `simulations/dynamic_tau_v5.py`  
+- sweeps and analyses in `simulations/run_sweep_v5.py` and `analyze_*_v5.py`.
 
-$$\
-\frac{\partial C}{\partial t} = D \nabla \cdot (\tau(x,t) \nabla C)
-\$$
+### 3.1 Core model
 
-Findings:
+The chemical subsystem is a 2-species Gray–Scott system:
 
-- τ-gradients cause asymmetric diffusion  
-- coherent fronts can form without external forcing  
-- time thickness acts like a hidden medium
+- \( A(x,y,t), B(x,y,t) \) with diffusion and autocatalytic reaction \( R = A B^2 \),
+- **effective diffusion** modulated by τ:
 
----
+  $$D_A^{\text{eff}} = \frac{D_{A0}}{\tau + \varepsilon}, \quad
+    D_B^{\text{eff}} = \frac{D_{B0}}{\tau + \varepsilon}$$
 
-### ### **🔹 Version 2 — τ-Dependent Chemical Kinetics**
+The τ equation uses an **activity + memory + resource** source:
 
-Reaction rate becomes time-adaptive:
+- activity \( S(x,y,t) \) built from \( |A B^2| \) and \( |\nabla B| \),
+- optional **memory kernels** (`mem_fast`, `mem_slow`) that integrate activity over time,
+- an optional **resource field** $$\(N(x,y,t)\)$$ that diffuses, is consumed, and replenished:
 
-$$\
-k_{\text{eff}} = k_0\, f(\tau)
-\$$
+  $$\frac{\partial N}{\partial t}
+    = D_N \nabla^2 N
+    - \eta N B
+    + \rho$$
 
-Findings:
+The result is a **time-density medium** where:
 
-- τ can accelerate or inhibit reactions  
-- local τ anomalies produce “temporal catalysis”  
-- reaction fronts bend, stall, or self-focus
+- τ **remembers** sustained dynamics,
+- τ **sculpts** the landscape by slowing diffusion where memory accumulates,
+- N acts as a **resource abstraction layer** controlling how easily τ can thicken.
 
----
+### 3.2 Parameter sweeps and Q-ridge
 
-### ### **🔹 Version 3 — τ-Dependent Phase Transitions**
+Using `run_sweep_v5.py`, we perform large sweeps over:
 
-Ising-like model with τ-controlled criticality.
+- Gray–Scott parameters: `feed`, `kill`
+- τ parameters: `alpha`, `beta`, `gamma`, `kappa_tau`, `tau_noise`
+- memory options: single vs multiscale memory
+- nutrient options: with/without resource coupling
 
-Findings:
+Each configuration `cfg` is run via:
 
-- τ shifts effective temperature  
-- pseudo-phase transitions occur without energy input  
-- spontaneous pattern formation emerges from τ-tension alone
+```python
+dynamic_tau_v5.run_simulation(cfg, outdir)
+```
+Outputs are stored under:
 
----
+- `outputs/dynamic_tau_v5/` (global sweeps)
+- `outputs/dynamic_tau_v5_qridge/` (refined sweeps along coherence “ridges”)
 
-## 3. **🔥 Version 4 — Dynamic τ Feedback (Simulation 4)**
+For every run we track:
 
-“Can a time-density field learn?”
+- **Coherence**  
+  – mean \( \langle |A + iB|^2 \rangle \)
 
-We introduce feedback:
+- **Entropy**  
+  – Shannon entropy of \(B\)
 
-$$\
-\frac{\partial \tau}{\partial t}
-= \alpha S(x,t) - \beta (\tau - \tau_0)
-\$$
+- **Energy-like quantity**  
+  – \( \tfrac{1}{2} \langle A^2 + B^2 \rangle \)
 
-where S(x,t) is local activity.
+- **Autocatalysis**  
+  – mean \( \langle A B^2 \rangle \)
 
-Findings:
+- **τ structure**  
+  – variance and gradient energy of τ in the final frame
 
-- τ begins *self-amplifying* and *self-damping*  
-- localized time-thick regions persist  
-- oscillons become proto-cells  
-- memory + reaction–diffusion → **lifelike dynamics**
+From these, `analyze_proto_life_v5.py` produces summary CSVs (e.g. `runs_summary_v5_qridge.csv`), and identifies:
 
-This was the first clear sign that τ-feedback can create *autopoietic* behavior.
+- high-coherence, low-entropy, τ-structured runs,
 
----
-
-# 4. **🚨 Version 5 — Proto-Life Emergence via Dynamic τ (Major New Result)**
-
-This is the breakthrough.
-
-### **Simulation Setup**
-- 2-species Gray–Scott RD system (A,B)
-- coupled to a dynamic τ-field
-- τ is modulated by local reaction activity
-- ~200 runs across α, β, feed, kill parameter ranges
-
-### **Key Metrics Tracked**
-- **Coherence** (⟨|A+iB|²⟩)
-- **Entropy** (Shannon entropy of B)
-- **Energy**
-- **Autocatalysis**
-
-### **Core Discovery**
-
-Across runs, the system shows:
-
-#### **1. Strong self-organization**
-- Coherence increases over time  
-- Entropy decreases  
-- Energy density increases with coherence  
-
-This is the exact thermodynamic footprint of **proto-life**.
-
-#### **2. Perfect coupling between coherence and energy**
-
-Correlation:
-
-coherence ↔ energy = 1.000
-
-A perfect linear identity.  
-This occurs only in **autocatalytic, self-stabilizing systems**.
-
-#### **3. Entropy and coherence anti-correlate**
-
-Correlation:
-
-coherence ↔ entropy = −0.916
-
-The system spontaneously **reduces entropy** while **increasing structure**.
-
-This is the clearest signature of a **living-like attractor**.
-
-#### **4. Deterministic attractor dynamics**
-
-Correlations with time exceed **0.98**, indicating:
-
-- not random  
-- not chaotic  
-- strongly convergent  
-
-The τ-driven system **learns** and **settles into a stable, coherent structure**.
+forming a **“Q-ridge”** in parameter space where proto-life behaviours concentrate.
 
 ---
 
-# 5. Implications
+### 4. From Patterns to Proto-Organisms
 
-### **Proto-life can form directly from mathematical structure**
-No chemistry required — only:
+To move beyond “pretty patterns”, we add morphological and dynamical metrics (via `analyze_internal_v5.py`):
 
-1. diffusion  
-2. reaction  
-3. time-memory feedback  
+- `maintenance_iou`  
+  – IoU of mid vs final B-activity masks  
+  – *Do we keep the same body outline over time?*
 
-### **Life = stability in the memory field**
-Matter becomes intelligent when memory reinforces its own activity.
+- `internal_reorg_index`  
+  – \( 1 - \mathrm{corr}(B_{\text{mid}}, B_{\text{final}}) \) inside the cell mask  
+  – *How much does the interior reorganise while the body persists?*
 
-### **Universal Principle**
-This supports a deep idea:
+- `com_shift_B`  
+  – centre-of-mass shift of B  
+  – *Does the mass move, drift, or split?*
 
-> Life is not a chemical accident —  
-> it's a natural consequence of time-density feedback in any sufficiently expressive medium.
+- `coherence_osc_index`  
+  – variance of detrended coherence time-series  
+  – *Does the organism “breathe” in coherence around a trend?*
+
+Together with τ-structure metrics, these reveal three robust regimes on the Q-ridge:
+
+#### Breathing cells
+
+- high boundary persistence (IoU ≈ 1)  
+- moderate internal reorganisation  
+- clear coherence oscillations  
+
+→ **homeostatic proto-organisms**.
+
+#### Crystallising cells
+
+- extremely stable outlines and interiors  
+- weak oscillation  
+
+→ **τ-fossils**: beautiful but dynamically stiff structures.
+
+#### Melting foam
+
+- fragile shapes  
+- large internal reorganisation  
+- faster coherence decay  
+
+→ **overdriven states** near dissolution or phase transition.
+
+These classes are described in detail in `docs/proto_life_results.md`.
 
 ---
 
-## 6. Repository Structure (Updated)
+### 5. Environmental Perturbation Experiments
 
+We test whether these τ-cells are just delicate patterns or genuine **attractors with identity**.
+
+Using `run_env_tests_v5.py`, we:
+
+- select representative Q-ridge runs (breathing, crystallising, melting)
+
+- for each, construct environment variants:
+  - `baseline` (original `feed`, `kill`)
+  - `feed_low`, `feed_high`
+  - `kill_low`, `kill_high`
+
+- re-run from the same initial condition with modified parameters into:
+  - `outputs/dynamic_tau_v5_env/<hash>/<variant>/`
+
+- compare final B fields to the baseline final B:
+  - `iou_vs_baseline` (shape similarity)
+  - `corr_vs_baseline` (internal pattern similarity)
+
+**Findings (informal summary):**
+
+- **Breathing cells**  
+  preserve their body outline across a band of environments,  
+  while reorganising their interior under stress → proto-homeostasis.
+
+- **Crystallising cells**  
+  preserve both shape and interior almost rigidly → memory without plasticity.
+
+- **Melting regimes**  
+  often keep a rough outline but completely rewrite their interior (or dissolve) → edge-of-failure states.
+
+These results support the interpretation that the **dynamic τ medium** supports stable, environment-sensitive proto-organisms, not just static patterns.
+
+Details and figures are in `docs/proto_life_results.md` and `plots/proto_life_v5/`.
+
+---
+
+### 6. Repository Structure
 ```
 time-density/
 │
-├── README.md ← you are here
+├── README.md                     ← overview and entry point
 │
 ├── docs/
-│ ├── theory_overview.md
-│ ├── proto_life_results.md ← new (analysis & figs go here)
-│ └── roadmap_v2.md
+│   ├── theory_overview.md        ← conceptual background (time-density, τ)
+│   ├── proto_life_results.md     ← main v5 proto-life analysis & figures
+│   └── roadmap_v2.md             ← research roadmap and future directions
 │
 ├── simulations/
-│ ├── temporal_diffusion.ipynb
-│ ├── reaction_kinetics_tau.ipynb
-│ ├── phase_transition_tau.ipynb
-│ ├── tau_reaction_diffusion_dynamic_tau.py
-│ ├── runner_dynamic_tau_sweep.py
-│ └── outputs/
-│ └── dynamic_tau_sweep/
+│   ├── dynamic_tau_v5.py         ← core v5 time-density + Gray–Scott model
+│   ├── run_sweep_v5.py           ← parameter sweeps (global + Q-ridge)
+│   ├── tau_reaction_diffusion_v2.py   ← archival v2 exploratory model
+│   └── (older notebooks / scripts for v1–v4, kept for reference)
 │
 ├── analysis/
-│ └── analyze_dynamic_tau_sweep.py
+│   ├── analyze_proto_life_v5.py  ← aggregate metrics & scoring
+│   ├── analyze_internal_v5.py    ← boundary / internal dynamics metrics
+│   └── run_env_tests_v5.py       ← environmental perturbation experiments
+│
+├── outputs/
+│   ├── dynamic_tau_v5/           ← raw global sweeps
+│   ├── dynamic_tau_v5_qridge/    ← refined Q-ridge sweeps
+│   └── dynamic_tau_v5_env/       ← environment-variant runs
 │
 ├── plots/
-│ └── to_be_generated/
+│   └── proto_life_v5/
+│       ├── runs_summary_v5.csv
+│       ├── runs_summary_v5_qridge.csv
+│       ├── runs_summary_v5_qridge_with_internal.csv
+│       ├── env_tests_summary.csv
+│       ├── phase maps, scatterplots
+│       └── best-run montages & cross-sections
 │
 ├── LICENSE
 └── zenodo.json
 ```
+## 7. How to Run
+### 7.1 Setup
+```bash
+python -m venv .venv
+source .venv/bin/activate
 
----
+pip install --upgrade pip
+pip install numpy matplotlib pandas pillow tqdm
+```
+### 7.2 Run a sweep
+From repository root:
+```bash
+# Global sweep (example)
+python simulations/run_sweep_v5.py --mode global --workers 4
 
-## 7. Citation
+# Q-ridge refinement sweep (example)
+python simulations/run_sweep_v5.py --mode qridge --workers 4
+```
+Outputs will appear under outputs/dynamic_tau_v5/ and outputs/dynamic_tau_v5_qridge/.
+### 7.3 Analyse runs
+```bash
+# Aggregate metrics
+python analysis/analyze_proto_life_v5.py \
+    --root outputs/dynamic_tau_v5_qridge \
+    --out plots/proto_life_v5/runs_summary_v5_qridge.csv
 
-This work will be archived in **Zenodo** upon Version 1.0 release.
+# Add internal dynamics metrics
+python analysis/analyze_internal_v5.py \
+    --csv plots/proto_life_v5/runs_summary_v5_qridge.csv
+
+# Environmental tests for selected candidates
+python analysis/run_env_tests_v5.py \
+    --candidates 40cdedd754 94392f5ff1 6fc841af45
+```
+Then inspect the CSVs and figures in plots/proto_life_v5/.
+
+8. Citation
+
+This work will be archived in Zenodo upon Version 1.0 release.
 
 Example citation:
 
 [Author Name], Time-Density Physics: Proto-Life from Temporal Memory Fields.
-GitHub (2025), DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17781094.svg)](https://doi.org/10.5281/zenodo.17781094)
+GitHub (2025), Zenodo DOI: 10.5281/zenodo.XXXXXXX (to be updated)
 
+9. Roadmap
 
+The next stages of this project focus on:
 
----
+richer nutrient and resource dynamics (multi-resource ecologies)
 
-## 8. Roadmap: Version 2
+geometry-coupled τ (curvature-dependent time, spatial self-sculpting)
 
-### **A. Add nutrient field N(x,t)**  
-Proto-metabolism.
+systematic τ-noise and perturbation studies (resilience and evolution)
 
-### **B. Geometry-coupled τ (curvature-dependent time)**  
-Spatial self-sculpting.
+multiple interacting τ-species (proto-ecologies)
 
-### **C. Environmental τ-noise**  
-Resilience and evolution.
+more elaborate memory kernels (learning systems, adaptation timescales)
 
-### **D. Multi-τ species (τ1, τ2,…)**  
-Proto-ecologies.
+possible links to experimental active media and field-theoretic models
 
-### **E. τ-memory integrals**  
-Learning systems.
+For details, see docs/roadmap_v2.md.
 
----
+“When time thickens, matter forms.
+When matter remembers, life begins.”
 
-*“When time thickens, matter forms.  
-When matter remembers, life begins.”*
