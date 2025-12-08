@@ -44,13 +44,12 @@ In this picture:
 
 Mathematically, τ evolves according to a feedback equation of the form:
 
-$$\frac{\partial \tau}{\partial t}
-  = \alpha\,S(x,y,t)
-  - \beta\,(\tau - \tau_0)
-  + \gamma\,N(x,y,t)
-  + \kappa_\tau \nabla^2 \tau
-  + \eta_\tau(x,y,t)
-$$
+
+$$\frac{\partial \tau}{\partial t} = \alpha\,S(x,y,t)$$
+$$-\beta\,(\tau - \tau_0)$$
+$$+\gamma\,N(x,y,t)$$
+$$+\kappa_\tau \nabla^2 \tau$$
+$$+\eta_\tau(x,y,t)$$
 
 where:
 
