@@ -1,5 +1,7 @@
 # Time-Density Physics: From Reaction–Diffusion to Proto-Life
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17856677.svg)](https://doi.org/10.5281/zenodo.17856677)
+
 > **“Matter is the memory of change — life is memory learning to organize itself.”**
 
 This repository develops and explores a new physical principle:
@@ -348,9 +350,6 @@ Example citation:
 
 [Author Name], Time-Density Physics: Proto-Life from Temporal Memory Fields.
 GitHub (2025), 
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17856677.svg)](https://doi.org/10.5281/zenodo.17856677)
-
 
 
 9. Roadmap
