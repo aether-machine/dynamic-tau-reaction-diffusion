@@ -136,135 +136,289 @@ The result is a **time-density medium** where:
 - τ **sculpts** the landscape by slowing diffusion where memory accumulates,
 - N acts as a **resource abstraction layer** controlling how easily τ can thicken.
 
-### 3.2 Parameter sweeps and Q-ridge
+---
 
-Using `run_sweep_v5.py`, we perform large sweeps over:
+## What’s new in v6
 
-- Gray–Scott parameters: `feed`, `kill`
-- τ parameters: `alpha`, `beta`, `gamma`, `kappa_tau`, `tau_noise`
-- memory options: single vs multiscale memory
-- nutrient options: with/without resource coupling
+v6 adds a search layer on top of the simulator:
 
-Each configuration `cfg` is run via:
+- **BO** (Bayesian optimization) to push score upward.
+- **QD / MAP‑Elites** to intentionally harvest *diverse* regimes.
+- A **hybrid BO+QD loop** (probabilistically picks BO vs QD per run).
+- A sharper **“proto‑life score v2”** designed to avoid “IoU dominates everything”, while still requiring viability.
 
-```python
-dynamic_tau_v5.run_simulation(cfg, outdir)
+Key scripts:
+
+- `simulations/dynamic_tau_v6.py` — the simulator (reaction–diffusion + dynamic τ).
+- `simulations/run_search_v6.py` — BO / QD / hybrid search driver.
+- `simulations/analyze_search_v6.py` — aggregates results and produces plots + tables.
+
+---
+
+## Repository layout (high level)
+
 ```
-Outputs are stored under:
+simulations/
+  dynamic_tau_v5.py
+  dynamic_tau_v6.py
+  run_sweep_v5.py
+  run_sweep_v5_qridge.py
+  run_search_v6.py
+  analyze_search_v6.py
 
-- `outputs/dynamic_tau_v5/` (global sweeps)
-- `outputs/dynamic_tau_v5_qridge/` (refined sweeps along coherence “ridges”)
-
-For every run we track:
-
-- **Coherence**  
-  – mean $$\( \langle |A + iB|^2 \rangle \)$$
-
-- **Entropy**  
-  – Shannon entropy of $$\(B\)$$
-
-- **Energy-like quantity**  
-  – $$\( \tfrac{1}{2} \langle A^2 + B^2 \rangle \)$$
-
-- **Autocatalysis**  
-  – mean $$\( \langle A B^2 \rangle \)$$
-
-- **τ structure**  
-  – variance and gradient energy of τ in the final frame
-
-From these, `analyze_proto_life_v5.py` produces summary CSVs (e.g. `runs_summary_v5_qridge.csv`), and identifies:
-
-- high-coherence, low-entropy, τ-structured runs,
-
-forming a **“Q-ridge”** in parameter space where proto-life behaviours concentrate.
+outputs/
+  ... (generated; safe to delete / regenerate)
+```
 
 ---
 
-### 4. From Patterns to Proto-Organisms
+## Setup
 
-To move beyond “pretty patterns”, we add morphological and dynamical metrics (via `analyze_internal_v5.py`):
+Minimal dependencies used by the v6 pipeline:
 
-- `maintenance_iou`  
-  – IoU of mid vs final B-activity masks  
-  – *Do we keep the same body outline over time?*
+- Python 3.9+
+- `numpy`
+- `pandas`
+- `matplotlib`
+- `Pillow` (used by some sim rendering paths)
 
-- `internal_reorg_index`  
-  – $$\( 1 - \mathrm{corr}(B_{\text{mid}}, B_{\text{final}}) \)$$ inside the cell mask  
-  – *How much does the interior reorganise while the body persists?*
+A typical environment setup:
 
-- `com_shift_B`  
-  – centre-of-mass shift of B  
-  – *Does the mass move, drift, or split?*
-
-- `coherence_osc_index`  
-  – variance of detrended coherence time-series  
-  – *Does the organism “breathe” in coherence around a trend?*
-
-Together with τ-structure metrics, these reveal three robust regimes on the Q-ridge:
-
-#### Breathing cells
-
-- high boundary persistence (IoU ≈ 1)  
-- moderate internal reorganisation  
-- clear coherence oscillations  
-
-→ **homeostatic proto-organisms**.
-
-#### Crystallising cells
-
-- extremely stable outlines and interiors  
-- weak oscillation  
-
-→ **τ-fossils**: beautiful but dynamically stiff structures.
-
-#### Melting foam
-
-- fragile shapes  
-- large internal reorganisation  
-- faster coherence decay  
-
-→ **overdriven states** near dissolution or phase transition.
-
-These classes are described in detail in `docs/proto_life_results.md`.
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install numpy pandas matplotlib pillow
+```
 
 ---
 
-### 5. Environmental Perturbation Experiments
+## Metrics glossary (the “proto‑life” signals)
 
-We test whether these τ-cells are just delicate patterns or genuine **attractors with identity**.
+The v6 search uses the same core metrics you’ve been tracking:
 
-Using `run_env_tests_v5.py`, we:
+### `maintenance_iou`
+A **viability / persistence** proxy: overlap between a mid‑simulation structure and the final structure.
 
-- select representative Q-ridge runs (breathing, crystallising, melting)
+- Higher → the macroscopic pattern persists.
+- Lower → the system collapses, diffuses away, or explodes into noise.
 
-- for each, construct environment variants:
-  - `baseline` (original `feed`, `kill`)
-  - `feed_low`, `feed_high`
-  - `kill_low`, `kill_high`
+### `internal_reorg_index`
+An **internal reorganization** proxy: how much internal rearrangement happens while the outer form may remain.
 
-- re-run from the same initial condition with modified parameters into:
-  - `outputs/dynamic_tau_v5_env/<hash>/<variant>/`
+- Higher → richer internal change.
+- Too high can mean violent rearrangement that destroys viability.
 
-- compare final B fields to the baseline final B:
-  - `iou_vs_baseline` (shape similarity)
-  - `corr_vs_baseline` (internal pattern similarity)
+### `coherence_osc_index`
+A **coherent oscillation** proxy: is there sustained rhythmic / coherent activity (not just noise)?
 
-**Findings (informal summary):**
+- Higher → more sustained oscillatory dynamics.
 
-- **Breathing cells**  
-  preserve their body outline across a band of environments,  
-  while reorganising their interior under stress → proto-homeostasis.
+### `mean_entropy` and `mean_coherence`
+Optional “texture” metrics used for diagnostics / ranking / plotting.
 
-- **Crystallising cells**  
-  preserve both shape and interior almost rigidly → memory without plasticity.
+- Entropy helps distinguish structured dynamics vs noise.
+- Coherence helps distinguish coordinated oscillation vs uncorrelated flicker.
 
-- **Melting regimes**  
-  often keep a rough outline but completely rewrite their interior (or dissolve) → edge-of-failure states.
+---
 
-These results support the interpretation that the **dynamic τ medium** supports stable, environment-sensitive proto-organisms, not just static patterns.
+## v6 Search driver (BO / QD / hybrid)
 
-Details and figures are in `docs/proto_life_results.md` and `plots/proto_life_v5/`.
+### 1) Basic run
 
+```bash
+python simulations/run_search_v6.py \
+  --out_root outputs/dynamic_tau_v6_search \
+  --workers 8 \
+  --budget 200 \
+  --init_random 40 \
+  --mode hybrid \
+  --p_qd 0.7 \
+  --nx 150 --ny 150 \
+  --steps 3000
+```
+
+### 2) Recommended: QD “knobs” exposed
+
+These tune the **behavior space mapping** (descriptors → bins) and how hard QD pushes for novelty.
+
+Example (matches the tuned run you posted):
+
+```bash
+python simulations/run_search_v6.py \
+  --out_root outputs/dynamic_tau_v6_search_tuned \
+  --workers 8 --budget 200 --init_random 40 \
+  --mode hybrid --p_qd 0.7 \
+  --qd_bins 12 \
+  --qd_maint_max 0.35 \
+  --qd_reorg_scale 0.05 \
+  --qd_osc_scale 1e-5 \
+  --qd_mix_osc 0.3 \
+  --qd_sigma 0.14 \
+  --qd_flip_prob 0.35 \
+  --steps 3000 --nx 150 --ny 150
+```
+
+What these mean (conceptually):
+
+- `--qd_bins`: grid resolution in behavior space (MAP‑Elites grid is `bins × bins`).
+- `--qd_maint_max`: sets how maintenance IoU is normalized into descriptor space.
+- `--qd_reorg_scale`, `--qd_osc_scale`: control how reorg/osc are squashed into `[0,1]` (think “soft normalization”).
+- `--qd_mix_osc`: mixes reorg and oscillation into the second descriptor:
+  - `0.0` → descriptor 2 is “pure reorg”
+  - `1.0` → descriptor 2 is “pure oscillation”
+- `--qd_sigma`: adds Gaussian noise in descriptor space to prevent collapse into a tiny region.
+- `--qd_flip_prob`: occasionally swaps descriptor axes (another anti‑collapse trick).
+
+### 3) Score version
+
+The search driver can rank runs using a score function.
+
+- `v1` is a simple weighted blend.
+- `v2` adds **a soft viability gate** + **saturation** so IoU can’t dominate everything.
+
+Example:
+
+```bash
+python simulations/run_search_v6.py \
+  --out_root outputs/dynamic_tau_v6_search_scorev2 \
+  --workers 8 --budget 200 --init_random 40 \
+  --mode hybrid --p_qd 0.7 \
+  --qd_bins 12 --qd_maint_max 0.35 --qd_reorg_scale 0.05 --qd_osc_scale 1e-5 --qd_mix_osc 0.3 \
+  --qd_sigma 0.14 --qd_flip_prob 0.35 \
+  --score_version v2 \
+  --score_iou_gate 0.08 \
+  --score_iou_width 0.02 \
+  --score_iou_sat_scale 0.10 \
+  --steps 3000 --nx 150 --ny 150
+```
+
+Interpretation of the main v2 knobs:
+
+- `--score_iou_gate`: below this IoU the score is strongly suppressed.
+- `--score_iou_width`: how soft / sharp the gate is.
+- `--score_iou_sat_scale`: scale for the saturating IoU term (smaller = saturates earlier).
+
+If you want a *hard* “must be alive” filter, push `score_iou_gate` upward.
+If you want exploration of barely‑viable borderline regimes, lower it slightly.
+
+### 4) Search modes
+
+- `--mode bo`: always use Bayesian optimization (best for maximizing score).
+- `--mode qd`: always use QD/MAP‑Elites sampling (best for diversity).
+- `--mode hybrid`: each run chooses BO vs QD; `--p_qd` controls the fraction of QD runs.
+
+### 5) Resume
+
+If the process is interrupted:
+
+```bash
+python simulations/run_search_v6.py --out_root outputs/dynamic_tau_v6_search_tuned --resume
+```
+
+---
+
+## What `run_search_v6.py` writes
+
+Inside `--out_root`, you’ll typically see:
+
+- `boqd_log.csv` — one row per run (method, params, metrics, score, descriptors, run_dir)
+- `best_so_far.json` — rolling best run (score + params)
+- `qd_elites.json` — MAP‑Elites archive: best run_dir per behavior cell
+
+And per run directory (e.g. `outputs/.../qd/<id>/`):
+
+- `cfg.json` — parameters + flags
+- `metrics.csv` — scalar metrics
+- `state_mid.npz`, `state_final.npz` — saved state (includes at least `B` and `tau`)
+- `summary.json` — compact record used by the analyzer
+
+---
+
+## Analyzing v6 runs
+
+After a search completes (or during, if you want live snapshots), run:
+
+```bash
+python simulations/analyze_search_v6.py \
+  --run_dir outputs/dynamic_tau_v6_search_tuned \
+  --bins 12
+```
+
+The analyzer produces:
+
+- `descriptor_scatter.png` — points in descriptor space, colored by score
+- `qd_elite_heatmap.png` — best score per MAP‑Elites cell
+- `coverage_over_time.png` — how quickly the search fills behavior space
+- `score_vs_metrics.png` — score vs each metric (overlay)
+- `top25_by_score.csv` — fastest way to find “what to look at next”
+- `analysis_quantiles.json` — quick distribution summary for sanity checks
+
+---
+
+## Regime characterization (a practical taxonomy)
+
+Once you have `descriptor_scatter.png` and `qd_elite_heatmap.png`, you can label clusters into regimes.
+
+Here’s a simple, *actionable* taxonomy that maps directly to the metrics:
+
+### 1) Stable / static
+**High `maintenance_iou`**, **low `internal_reorg_index`**, **low `coherence_osc_index`**.
+
+- “Alive” only in the trivial sense: the pattern persists but does nothing.
+- Useful as a control group / baseline.
+
+### 2) Breathing maintenance
+**High `maintenance_iou`**, **moderate reorg**, **moderate-to-high oscillation**.
+
+- This is often the most “proto‑life‑ish” region: persistent boundary + active interior.
+- Expect higher `mean_coherence` than noise‑dominated cases.
+
+### 3) Metastable reorganization
+**Moderate IoU**, **high reorg**, **mixed oscillation**.
+
+- Pattern may hold for long periods but undergoes punctuated internal change.
+- These are great for “fractal resonance” / “internal negotiation” hypotheses because transitions can be sharp.
+
+### 4) Chaotic / noisy
+**Low IoU**, often **high entropy**, often **low coherence**.
+
+- Usually not helpful unless you’re explicitly studying noise‑driven exploration.
+
+### How to use QD to harvest regimes intentionally
+
+- To push toward “breathing maintenance”: increase `qd_mix_osc` (bias descriptor 2 toward oscillation) and use score v2 with a firm IoU gate.
+- To harvest reorganizers: decrease `qd_mix_osc`, lower `qd_reorg_scale` (more sensitivity), and slightly relax `score_iou_gate`.
+- If coverage collapses into a tiny region: increase `qd_sigma` and/or `qd_flip_prob`, and consider lowering `--p_qd` temporarily so BO can “jump” you to a new viable area.
+
+---
+
+## Legacy: v5 sweeps (baseline + Q‑ridge)
+
+The older v5 workflow is still useful for controlled sweeps and for reproducing earlier results.
+
+### Uniform / grid sweep
+
+```bash
+python simulations/run_sweep_v5.py \
+  --out_root outputs/dynamic_tau_v5_sweep \
+  --steps 3000 --nx 150 --ny 150
+```
+
+### Q‑ridge sweep
+
+```bash
+python simulations/run_sweep_v5_qridge.py \
+  --out_root outputs/dynamic_tau_v5_qridge \
+  --steps 3000 --nx 150 --ny 150
+```
+
+---
+
+## Notes / tips
+
+- **Budget sizing:** if behavior coverage plateaus quickly, increase `--budget` and/or increase `--qd_sigma`.
+- **Low‑frequency / slow dynamics:** increase `--steps` (and consider saving snapshots more frequently).
+- **Reproducibility:** if you need determinism, add a fixed seed to the search driver and to the simulator RNG paths.
 ---
 
 ### 6. Repository Structure
