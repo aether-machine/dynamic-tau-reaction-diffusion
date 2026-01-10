@@ -155,43 +155,6 @@ Key scripts:
 
 ---
 
-## Repository layout (high level)
-
-```
-simulations/
-  dynamic_tau_v5.py
-  dynamic_tau_v6.py
-  run_sweep_v5.py
-  run_sweep_v5_qridge.py
-  run_search_v6.py
-  analyze_search_v6.py
-
-outputs/
-  ... (generated; safe to delete / regenerate)
-```
-
----
-
-## Setup
-
-Minimal dependencies used by the v6 pipeline:
-
-- Python 3.9+
-- `numpy`
-- `pandas`
-- `matplotlib`
-- `Pillow` (used by some sim rendering paths)
-
-A typical environment setup:
-
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install numpy pandas matplotlib pillow
-```
-
----
-
 ## Metrics glossary (the “proto‑life” signals)
 
 The v6 search uses the same core metrics you’ve been tracking:
