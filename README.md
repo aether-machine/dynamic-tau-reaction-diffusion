@@ -402,6 +402,7 @@ w(x,t)=\sigma\!\left(\frac{B(x,t)-b_0}{b_w}\right)
 where $$\(\sigma\)$$ is a sigmoid-like soft threshold.
 
 This induces “body-conditioned” statistics for any field $$\(f(x,t)\)$$:
+
 $$\[
 E_w[f](t)=\frac{\sum_x w(x,t)f(x,t)}{\sum_x w(x,t)+\varepsilon},\quad
 \mathrm{Var}_w[f](t)=E_w[f^2](t)-E_w[f](t)^2
