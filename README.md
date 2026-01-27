@@ -383,6 +383,154 @@ python simulations/run_sweep_v5_qridge.py \
 - **Low‑frequency / slow dynamics:** increase `--steps` (and consider saving snapshots more frequently).
 - **Reproducibility:** if you need determinism, add a fixed seed to the search driver and to the simulator RNG paths.
 ---
+## V7 “Measurement Calculus” Update: Universal `w`-conditioned metrics + crosstalk control
+
+V7 shifts the search/analysis stack from a “zoo of scalar metrics” to a **single shared measurement calculus** computed from one organism indicator. The goal is to **handle crosstalk *before* computation**, so descriptors and scores become *different projections of the same conditioned process* rather than competing objectives.
+
+> **Pipeline:** Field → weighted signals → shared viability window → orthogonalized functionals
+
+---
+
+### 1) One shared organism measure inside the sim
+
+We define a soft organism indicator field `w(x,t)` (or equivalently use the logged `w_mean(t)` as its global summary). The key idea is that *all* downstream signals are computed as **conditional expectations under `w`**, rather than over the whole dish/grid.
+
+A typical soft indicator:
+$$\[
+w(x,t)=\sigma\!\left(\frac{B(x,t)-b_0}{b_w}\right)
+\]$$
+where $$\(\sigma\)$$ is a sigmoid-like soft threshold.
+
+This induces “body-conditioned” statistics for any field $$\(f(x,t)\)$$:
+$$\[
+E_w[f](t)=\frac{\sum_x w(x,t)f(x,t)}{\sum_x w(x,t)+\varepsilon},\quad
+\mathrm{Var}_w[f](t)=E_w[f^2](t)-E_w[f](t)^2
+\]$$
+
+**Why this kills crosstalk:**  
+Metrics like entropy/coherence computed on the full grid are dominated by background. Conditioning on `w` makes them “about the organism,” not the dish—so growth doesn’t trivially improve every other metric.
+
+---
+
+### 2) A shared viability window *before* any metric is computed
+
+Rather than compute metrics on all timesteps equally, we define a soft time-weight \(W(t)\) from mass-like signal \(M(t)=\langle w\rangle\) (or directly from `w_mean(t)`):
+
+$$\[
+W(t)=\sigma\!\left(\frac{M(t)-M^\*}{s}\right)
+\]$$
+
+Optionally add a survival gate relative to early mass \(M_\text{ref}\):
+$$\[
+S(t)=\sigma\!\left(\frac{M(t)-\alpha M_\text{ref}}{s}\right)
+\]$$
+
+Then the effective analysis window is:
+$$\[
+\widetilde{W}(t)=W(t)\cdot S(t)\cdot \text{taper}(t)
+\]$$
+
+**Everything uses $$\(\widetilde{W}(t)\)$$.** This is the “handle crosstalk before computation” step.
+
+---
+
+### 3) A minimal basis of conditioned signals (small, interpretable)
+
+We aim for a small set of channels spanning “life-like” behaviors:
+
+- **Growth channel:** scale-free log mass  
+  $$\[
+  g(t)=\log(M(t)+\varepsilon)
+  \]$$
+- **Oscillation (“breathing”) channel:** pick a scalar that should oscillate when internal dynamics stabilize. In minimal V7 we use time series derived from `w_mean(t)`; richer variants can use conditioned tau-structure like $$\(E_w[\|\nabla\tau\|^2]\)$$.
+- **Reorganization channel:** snapshot distance computed in the same `w`-measure (optional but recommended).
+- **Complexity channel:** conditioned entropy / spectral entropy (optional regularizer).
+
+---
+
+### 4) Universal metric operators (the only “allowed” functionals)
+
+Instead of inventing bespoke metrics, V7 uses a small library of operators—each applied consistently under \(\widetilde{W}(t)\):
+
+**Operator A — weighted slope (growth)**
+$$\[
+\text{slope}_{\widetilde{W}}(g)=\arg\min_a\sum_t\widetilde{W}(t)\big(g(t)-(at+b)\big)^2
+\]$$
+
+**Operator B — oscillation lock-in via PSD peakiness (preferred)**
+Compute PSD $$\(P(f)\)$$ on a windowed/detrended signal $$\(s(t)\)$$. Then:
+
+- **Peak ratio (“lock-in”)**
+  $$\[
+  \text{peak\_ratio}(s)=\frac{\max_{f\in B}P(f)}{\mathrm{median}_{f\in B}P(f)+\varepsilon}
+  \]$$
+  Often reported as:
+  $$\[
+  \log\_{{\rm peak}}=\log(\text{peak\_ratio})
+  \]$$
+- **Peak frequency**
+  $$\[
+  f_{\rm peak}=\arg\max_{f\in B}P(f)
+  \]$$
+
+**Operator C — conditional distance (reorg/maintenance)**
+Weighted correlation distance between snapshots $$\(B_1, B_2\)$$:
+$$\[
+D(B_1,B_2)=1-\mathrm{corr}_w(B_1,B_2)
+\]$$
+
+**Operator D — conditioned entropy / spectral entropy (optional)**
+Entropy of a weighted histogram or spectral entropy of a conditioned PSD.
+
+---
+
+### 5) Explicit decomposition: remove shared variance (“orthogonalize”)
+
+The step most pipelines skip: **orthogonalize secondary channels against mass** so they don’t just measure “big organisms do more of everything.”
+
+Example: oscillation often correlates with mass. We regress $$\(s(t)\)$$ on $$\(g(t)\)$$ within the viable window and use the residual:
+$$\[
+s_\perp(t)=s(t)-\hat{a}g(t)-\hat{b}
+\]$$
+Then compute oscillation metrics on $$\(s_\perp(t)\)$$, not $$\(s(t)\)$$.
+
+This is still pure math (weighted least squares) and it makes metrics *stop fighting*.
+
+---
+
+### 6) Practical V7 stack (growth + oscillation, minimal steering)
+
+This is the minimal set that stays “fluid / analog” (supports subtle incremental changes):
+
+- **Shared:** `w_mean(t)` (proxy for $$\(M(t)\))$$, viability window $$\(\widetilde{W}(t)\)$$
+- **Score:** growth functional (weighted slope of `log(w_mean + eps)`)
+- **Osc diagnostics:** `f_peak`, `peak_ratio`, `log_peak_ratio`, plus a continuity `osc_ratio` if desired
+- **Descriptors:** typically `(growth_sigmoid, osc_sigmoid)` where `osc_sigmoid` is based on `log_peak_ratio` (peakiness), not tiny band-energy fractions
+- **Feedback parameter:** `w_tau_gain` (and related `w_*` toggles) are logged and treated as first-class controls for “self-maintaining” region formation
+
+---
+
+### 7) What’s new in V7 (summary)
+
+- **Universal life signal:** use `w` / `w_mean(t)` as the shared organism measure.
+- **Shared viability window:** gate *all* metrics consistently in time.
+- **Oscillation “lock-in”:** add PSD peakiness + `f_peak` (more sensitive than band/total energy).
+- **Crosstalk control:** optional residualization against log-mass to make oscillation/complexity “pure axes.”
+- **Minimal steering:** focus search pressure on stable regimes without needing ad-hoc metric piles.
+
+---
+
+### 8) Immediate sanity probes (recommended)
+
+To verify the pipeline is behaving (and not a resolution/bug artifact):
+
+- Print a 10-row sample table per sweep:
+  `f_peak, peak_ratio, log_peak_ratio, osc_ratio, w_tau_gain`
+- Ensure `f_peak` is *not* constant across all runs (otherwise frequency resolution/banding is dominating).
+- Ensure `w_tau_gain` is nonzero/variable during evaluation and matches the CSV (otherwise activation/logging mismatch).
+
+
+
 
 ### 6. Repository Structure
 ```
