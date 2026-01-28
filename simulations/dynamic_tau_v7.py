@@ -297,8 +297,8 @@ def run_simulation(cfg: Dict[str, Any], outdir: str):
     with open(metrics_path, "w", encoding="utf-8") as f:
         cols = ["time", "coherence", "entropy", "autocat"]
         if w_enabled:
-            cols += ["w_mean"]
-        f.write(",".join(cols) + "\n")
+            cols += ["w_mean", "w_enabled_applied", "w_tau_gain_applied", "w_tau_bias_applied"]
+f.write(",".join(cols) + "\n")
 
     # Run
     w_field: Optional[np.ndarray] = None
@@ -365,7 +365,10 @@ def run_simulation(cfg: Dict[str, Any], outdir: str):
             row = [t, coh, ent, aut]
             if w_enabled:
                 row.append(float(np.mean(w_field)))  # type: ignore
-            with open(metrics_path, "a", encoding="utf-8") as f:
+                row.append(int(w_enabled))
+                row.append(float(w_tau_gain))
+                row.append(float(w_tau_bias))
+with open(metrics_path, "a", encoding="utf-8") as f:
                 f.write(",".join(map(str, row)) + "\n")
 
         # Snapshots / states
