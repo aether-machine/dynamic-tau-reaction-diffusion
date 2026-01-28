@@ -23,6 +23,16 @@ Outputs (under --out_root)
 - qd_map.png
 - best_so_far.json
 
+Run example
+  python simulations/run_search_v7_minimal_w.py \
+    --out_root outputs/dynamic_tau_v7_minimal_w \
+    --workers 8 --budget 400 --init_random 80 \
+    --bins 24 \
+    --steps 3000 --nx 150 --ny 150 \
+    --w_enabled 1 --w_tau_gain_max 0.15 \
+    --w_gate 0.01 \
+    --osc_fmin 0.002 --osc_fmax 0.03
+
 Notes
 - Frequencies are in cycles per unit of the 'time' column in metrics.csv.
   If your metrics.csv uses step-index time (e.g. 0,20,40...), the effective dt
@@ -47,7 +57,7 @@ import pandas as pd
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
-# --- simulator import (prefer v7) ---
+# --- simulator import (prefer v7, fail loudly if user asks to require v7) ---
 MODEL_NAME = None
 try:
     import dynamic_tau_v7 as model  # type: ignore
@@ -63,6 +73,7 @@ except Exception:
 
 def _json_sanitize(o: Any):
     import numpy as _np
+
     if isinstance(o, (_np.integer,)):
         return int(o)
     if isinstance(o, (_np.floating,)):
@@ -93,6 +104,7 @@ def stable_hash(d: Dict[str, Any]) -> str:
 # -------------------------
 
 # Keep the exploration set small on purpose.
+# Add more once w-feedback is clearly producing diverse persistent pockets.
 PARAM_SPACE: List[Tuple[str, float, float]] = [
     ("feed", 0.020, 0.050),
     ("kill", 0.045, 0.085),
@@ -105,22 +117,12 @@ PARAM_SPACE: List[Tuple[str, float, float]] = [
     ("w_tau_gain", 0.0, 0.15),
 ]
 
-# Guardrail: enforce a minimum feedback gain when debugging (set from CLI).
-W_TAU_GAIN_MIN: float = 0.0
-
-
-def _clamp_w_tau_gain(p: Dict[str, float]) -> Dict[str, float]:
-    """Enforce the CLI guardrail on the genome value."""
-    if "w_tau_gain" in p:
-        p["w_tau_gain"] = float(max(p["w_tau_gain"], W_TAU_GAIN_MIN))
-    return p
-
 
 def sample_params(rng: np.random.Generator) -> Dict[str, float]:
     p: Dict[str, float] = {}
     for name, lo, hi in PARAM_SPACE:
         p[name] = float(lo + (hi - lo) * rng.random())
-    return _clamp_w_tau_gain(p)
+    return p
 
 
 def mutate_params(rng: np.random.Generator, base: Dict[str, float], sigma: float) -> Dict[str, float]:
@@ -128,23 +130,23 @@ def mutate_params(rng: np.random.Generator, base: Dict[str, float], sigma: float
     for name, lo, hi in PARAM_SPACE:
         span = (hi - lo)
         out[name] = float(np.clip(out[name] + rng.normal(0.0, sigma) * span, lo, hi))
-    return _clamp_w_tau_gain(out)
+    return out
 
 
 # -------------------------
 # Simulator cfg
 # -------------------------
 
-def base_sim_cfg(nx: int, ny: int, steps: int) -> Dict[str, Any]:
+def base_sim_cfg(nx: int, ny: int, steps: int, dt: float, log_every: int) -> Dict[str, Any]:
     # Minimal set; your dynamic_tau_v7 can ignore unknown keys.
     return {
         "nx": nx,
         "ny": ny,
         "dx": 1.0,
         "dy": 1.0,
-        "dt": 0.01,
+        "dt": float(dt),
         "steps": steps,
-        "log_every": 20,
+        "log_every": int(log_every),
         "save_metrics": True,
         "save_states": True,
         "mid_state_step": steps // 2,
@@ -187,9 +189,7 @@ def base_sim_cfg(nx: int, ny: int, steps: int) -> Dict[str, Any]:
 
 
 def make_cfg(params: Dict[str, float], args: argparse.Namespace, seed: int) -> Dict[str, Any]:
-    cfg = base_sim_cfg(args.nx, args.ny, args.steps)
-
-    # continuous params
+    cfg = base_sim_cfg(args.nx, args.ny, args.steps, dt=args.dt, log_every=args.log_every)
     cfg["feed"] = float(params["feed"])
     cfg["kill"] = float(params["kill"])
     cfg["alpha"] = float(params["alpha"])
@@ -198,21 +198,15 @@ def make_cfg(params: Dict[str, float], args: argparse.Namespace, seed: int) -> D
     cfg["kappa_tau"] = float(params["kappa_tau"])
     cfg["tau_noise"] = float(params["tau_noise"])
 
-    # w-system toggles/shape
     cfg["w_enabled"] = bool(args.w_enabled)
     cfg["w_mode"] = str(args.w_mode)
     cfg["w_radius"] = int(args.w_radius)
     cfg["w_amp_thr"] = float(args.w_amp_thr)
     cfg["w_amp_width"] = float(args.w_amp_width)
-
-    # feedback gain from genome (guardrail already applied)
     cfg["w_tau_gain"] = float(params.get("w_tau_gain", 0.0))
     cfg["w_tau_bias"] = float(args.w_tau_bias)
-
-    # some sims use *_max naming; harmless if ignored
-    cfg["w_tau_gain_max"] = float(args.w_tau_gain_max)
-
     cfg["save_w"] = bool(args.save_w)
+
     cfg["seed"] = int(seed)
     return cfg
 
@@ -229,6 +223,7 @@ def _weighted_slope(t: np.ndarray, y: np.ndarray, w: Optional[np.ndarray] = None
     t = np.asarray(t, dtype=float)
     y = np.asarray(y, dtype=float)
 
+    # guard
     if len(t) < 3 or not np.isfinite(t).all() or not np.isfinite(y).all():
         return float("nan")
 
@@ -245,36 +240,150 @@ def _weighted_slope(t: np.ndarray, y: np.ndarray, w: Optional[np.ndarray] = None
     return float(num / den)
 
 
-def _psd_peak_log_ratio(x: np.ndarray, dt: float, fmin: float, fmax: float) -> Tuple[float, float, float]:
-    """Return (osc_log_peak, peak, floor) using rFFT PSD, excluding DC."""
+def _welch_psd(x: np.ndarray, dt: float, nperseg: int, noverlap_frac: float) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Minimal Welch PSD (no scipy dependency).
+    Returns (freqs, psd) where freqs are in 1/time units of dt.
+
+    Notes:
+      - Uses Hann window
+      - Averages periodograms across segments
+      - Normalizes so that psd integrates to ~variance (roughly; good enough for peak-finding)
+    """
     x = np.asarray(x, dtype=float)
-    if len(x) < 8 or not np.isfinite(x).all():
-        return float("nan"), float("nan"), float("nan")
+    n = int(x.size)
+    if n < 8:
+        return np.array([], dtype=float), np.array([], dtype=float)
 
-    x = x - np.mean(x)
-    # Hann window
-    w = np.hanning(len(x))
-    xw = x * w
+    nper = int(max(8, min(int(nperseg), n)))
+    nover = int(max(0, min(int(round(nper * float(noverlap_frac))), nper - 1)))
+    step = nper - nover
+    if step <= 0:
+        step = nper
 
-    X = np.fft.rfft(xw)
-    psd = (np.abs(X) ** 2)
-    freqs = np.fft.rfftfreq(len(xw), d=dt)
+    # Segment starts
+    starts = list(range(0, n - nper + 1, step))
+    if not starts:
+        starts = [0]
 
-    # exclude DC
-    psd = psd.copy()
-    psd[0] = 0.0
+    win = 0.5 - 0.5 * np.cos(2.0 * np.pi * np.arange(nper) / max(nper - 1, 1))
+    win_norm = float(np.sum(win * win))
 
-    band = (freqs >= fmin) & (freqs <= fmax)
-    if not np.any(band):
-        return float("nan"), float("nan"), float("nan")
+    acc = None
+    for s in starts:
+        seg = x[s:s + nper].astype(float, copy=True)
+        seg = seg - float(np.mean(seg))
+        # Linear detrend (cheap)
+        t = np.arange(seg.size, dtype=float)
+        a, b = np.polyfit(t, seg, 1)
+        seg = seg - (a * t + b)
 
-    band_psd = psd[band]
-    peak = float(np.max(band_psd))
-    floor = float(np.median(band_psd))
-    eps = 1e-18
-    osc_log = float(math.log((peak + eps) / (floor + eps)))
-    return osc_log, peak, floor
+        seg = seg * win
+        Y = np.fft.rfft(seg)
+        P = (np.abs(Y) ** 2) / (win_norm + 1e-12)
+        acc = P if acc is None else (acc + P)
 
+    psd = acc / max(1, len(starts))
+    freqs = np.fft.rfftfreq(nper, d=float(dt))
+    return freqs, psd
+
+
+def _osc_diagnostics(x: np.ndarray, dt: float, fmin: float, fmax: float, args) -> Dict[str, float]:
+    """
+    Compute oscillation diagnostics on a scalar time series x(t).
+
+    Returns:
+      osc_log          = log(peak_ratio) in-band vs out-of-band floor
+      osc_peak         = peak PSD in band
+      osc_floor        = floor PSD (median outside band)
+      osc_f_peak       = frequency of peak in band
+      osc_peak_ratio   = peak/(floor+eps)
+      osc_ratio        = band_power / total_power (after detrend)
+    """
+    x = np.asarray(x, dtype=float)
+    if x.size < 16 or not np.isfinite(x).any() or not (dt > 0):
+        return {
+            "osc_log": float("nan"),
+            "osc_peak": float("nan"),
+            "osc_floor": float("nan"),
+            "osc_f_peak": float("nan"),
+            "osc_peak_ratio": float("nan"),
+            "osc_ratio": float("nan"),
+        }
+
+    # Detrend globally (prevents DC/drift dominating denom)
+    x = x - float(np.nanmean(x))
+    t = np.arange(x.size, dtype=float)
+    a, b = np.polyfit(t[np.isfinite(x)], x[np.isfinite(x)], 1)
+    x = x - (a * t + b)
+
+    method = str(getattr(args, "osc_method", "fft")).lower()
+    if method == "welch":
+        nper = int(getattr(args, "osc_welch_nperseg", 256))
+        nover = float(getattr(args, "osc_welch_noverlap", 0.5))
+        freqs, psd = _welch_psd(x, dt=dt, nperseg=nper, noverlap_frac=nover)
+    else:
+        freqs = np.fft.rfftfreq(x.size, d=float(dt))
+        Y = np.fft.rfft(x)
+        psd = (np.abs(Y) ** 2) / float(x.size)
+
+    if freqs.size == 0 or psd.size == 0:
+        return {
+            "osc_log": float("nan"),
+            "osc_peak": float("nan"),
+            "osc_floor": float("nan"),
+            "osc_f_peak": float("nan"),
+            "osc_peak_ratio": float("nan"),
+            "osc_ratio": float("nan"),
+        }
+
+    # Drop DC from denominators/floor to reduce trivial dominance
+    if freqs.size > 1:
+        freqs2 = freqs[1:]
+        psd2 = psd[1:]
+    else:
+        freqs2, psd2 = freqs, psd
+
+    in_band = (freqs2 >= float(fmin)) & (freqs2 <= float(fmax))
+    if not np.any(in_band):
+        return {
+            "osc_log": float("nan"),
+            "osc_peak": float("nan"),
+            "osc_floor": float("nan"),
+            "osc_f_peak": float("nan"),
+            "osc_peak_ratio": float("nan"),
+            "osc_ratio": float("nan"),
+        }
+
+    band_psd = psd2[in_band]
+    band_freqs = freqs2[in_band]
+
+    osc_peak = float(np.max(band_psd))
+    peak_idx = int(np.argmax(band_psd))
+    osc_f_peak = float(band_freqs[peak_idx])
+
+    out_psd = psd2[~in_band]
+    if out_psd.size == 0:
+        osc_floor = float(np.median(band_psd))
+    else:
+        osc_floor = float(np.median(out_psd))
+
+    eps = 1e-15
+    peak_ratio = float(osc_peak / (osc_floor + eps))
+    osc_log = float(np.log(peak_ratio + eps))
+
+    band_power = float(np.trapz(band_psd, band_freqs))
+    total_power = float(np.trapz(psd2, freqs2))
+    osc_ratio = float(band_power / (total_power + eps))
+
+    return {
+        "osc_log": osc_log,
+        "osc_peak": osc_peak,
+        "osc_floor": osc_floor,
+        "osc_f_peak": osc_f_peak,
+        "osc_peak_ratio": peak_ratio,
+        "osc_ratio": osc_ratio,
+    }
 
 def compute_universal_from_metrics(metrics_csv: str, args: argparse.Namespace) -> Dict[str, float]:
     df = pd.read_csv(metrics_csv)
@@ -308,22 +417,8 @@ def compute_universal_from_metrics(metrics_csv: str, args: argparse.Namespace) -
     logw = np.log(ww + eps)
     growth_slope = _weighted_slope(tt, logw, wt)
 
-    osc_log, osc_peak, osc_floor = _psd_peak_log_ratio(
-        x=ww,
-        dt=dt,
-        fmin=float(args.osc_fmin),
-        fmax=float(args.osc_fmax),
-    )
-
-    # ---- NEW: measured feedback gain (from metrics.csv if present) ----
-    if "w_tau_gain" in df.columns:
-        xg = pd.to_numeric(df["w_tau_gain"], errors="coerce").to_numpy(dtype=float)
-        # prefer final value (could also use mean)
-        w_tau_gain_measured = float(xg[-1]) if len(xg) else float("nan")
-        w_tau_gain_missing = 0.0
-    else:
-        w_tau_gain_measured = float("nan")
-        w_tau_gain_missing = 1.0
+    osc = _osc_diagnostics(ww, dt=dt, fmin=float(args.osc_fmin), fmax=float(args.osc_fmax), args=args)
+    osc_log, osc_peak, osc_floor = osc['osc_log'], osc['osc_peak'], osc['osc_floor']
 
     return {
         "alive_frac": alive_frac,
@@ -331,11 +426,12 @@ def compute_universal_from_metrics(metrics_csv: str, args: argparse.Namespace) -
         "osc_log": float(osc_log),
         "osc_peak": float(osc_peak),
         "osc_floor": float(osc_floor),
+        "osc_f_peak": float(osc.get("osc_f_peak", float("nan"))),
+        "osc_peak_ratio": float(osc.get("osc_peak_ratio", float("nan"))),
+        "osc_ratio": float(osc.get("osc_ratio", float("nan"))),
         "w_mean_mean": float(np.nanmean(w)),
         "w_mean_final": float(w[-1]),
         "dt_metric": dt,
-        "w_tau_gain_measured": w_tau_gain_measured,
-        "w_tau_gain_missing": w_tau_gain_missing,
     }
 
 
@@ -441,9 +537,7 @@ def run_one(job: Job, args: argparse.Namespace) -> Dict[str, Any]:
         d1 = sigmoid01(float(um["osc_log"]) / max(float(args.osc_scale), 1e-18))
 
         # score: alive gate * (positive growth + osc)
-        alive_gate = sigmoid01(
-            (float(um["alive_frac"]) - float(args.alive_gate)) / max(float(args.alive_gate_width), 1e-9)
-        )
+        alive_gate = sigmoid01((float(um["alive_frac"]) - float(args.alive_gate)) / max(float(args.alive_gate_width), 1e-9))
         growth_pos = max(float(um["growth_slope"]), 0.0)
         score = alive_gate * (float(args.w_growth) * growth_pos + float(args.w_osc) * max(float(um["osc_log"]), 0.0))
 
@@ -455,9 +549,9 @@ def run_one(job: Job, args: argparse.Namespace) -> Dict[str, Any]:
             "score": float(score),
             "desc_0": float(d0),
             "desc_1": float(d1),
-            **{k: float(v) for k, v in job.params.items()},  # includes w_tau_gain (PARAM)
+            **{k: float(v) for k, v in job.params.items()},
             **{k: job.cfg.get(k) for k in ["seed", "nx", "ny", "steps"]},
-            **um,  # includes w_tau_gain_measured + w_tau_gain_missing
+            **um,
         }
 
         save_json(os.path.join(job.outdir, "meta.json"), {
@@ -501,6 +595,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--nx", type=int, default=150)
     p.add_argument("--ny", type=int, default=150)
     p.add_argument("--steps", type=int, default=3000)
+    p.add_argument("--dt", type=float, default=0.01, help="simulation dt (used for PSD sample dt)")
+    p.add_argument("--log_every", type=int, default=20, help="metrics logging cadence in steps (used for PSD sample dt)")
+    p.add_argument("--osc_method", type=str, default="fft", choices=["fft","welch"], help="PSD estimator for osc metrics")
+    p.add_argument("--osc_welch_nperseg", type=int, default=256, help="Welch segment length (samples)")
+    p.add_argument("--osc_welch_noverlap", type=float, default=0.5, help="Welch overlap fraction in [0,1)")
 
     # steering weights
     p.add_argument("--w_growth", type=float, default=1.0)
@@ -520,7 +619,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--w_gate_width", type=float, default=0.01)
     p.add_argument("--log_dt_fallback", type=float, default=1.0)
 
-    # oscillation band
+    # oscillation band (units: cycles per time unit in metrics.csv)
     p.add_argument("--osc_fmin", type=float, default=0.002)
     p.add_argument("--osc_fmax", type=float, default=0.03)
 
@@ -540,14 +639,6 @@ def parse_args() -> argparse.Namespace:
     # allow tightening the search range of w_tau_gain without editing PARAM_SPACE
     p.add_argument("--w_tau_gain_max", type=float, default=0.15)
 
-    # ---- NEW: guardrail + debug printing ----
-    p.add_argument("--w_tau_gain_min", type=float, default=0.0,
-                   help="Guardrail: clamp sampled/mutated w_tau_gain to at least this value.")
-    p.add_argument("--debug_print_first", type=int, default=0,
-                   help="Print the first N submitted genomes for sanity checks.")
-    p.add_argument("--debug_print_every", type=int, default=0,
-                   help="Print every K-th submitted genome (0 disables).")
-
     return p.parse_args()
 
 
@@ -563,19 +654,6 @@ def main() -> None:
     for i, (name, lo, hi) in enumerate(PARAM_SPACE):
         if name == "w_tau_gain":
             PARAM_SPACE[i] = (name, lo, float(args.w_tau_gain_max))
-
-    # Guardrails / sanity prints for feedback activation.
-    global W_TAU_GAIN_MIN
-    W_TAU_GAIN_MIN = float(args.w_tau_gain_min)
-
-    # Validate the patched bounds.
-    w_lo, w_hi = next((lo, hi) for (n, lo, hi) in PARAM_SPACE if n == "w_tau_gain")
-    print(f"[runner] w_tau_gain bounds: lo={w_lo} hi={w_hi} (min clamp={W_TAU_GAIN_MIN})")
-    if w_hi <= w_lo:
-        raise ValueError(
-            f"Invalid w_tau_gain bounds after patch: lo={w_lo} hi={w_hi}. "
-            f"Did you pass --w_tau_gain_max 0?"
-        )
 
     print(f"[runner] Using simulator: {MODEL_NAME} ({getattr(model, '__file__', 'unknown')})")
 
@@ -605,35 +683,6 @@ def main() -> None:
         cfg = make_cfg(params, args, seed)
         outdir = make_outdir(method, params, seed)
         run_idx += 1
-
-        # ---- FIX #1: safe formatting in debug prints ----
-        def _fmt6g(v):
-            if v is None:
-                return "NA"
-            try:
-                return f"{float(v):.6g}"
-            except Exception:
-                return "NA"
-
-        # Optional: print a sample of submitted genomes so we can verify w_tau_gain is not collapsing to 0.
-        if args.debug_print_first and run_idx <= int(args.debug_print_first):
-            print(
-                f"[submit {run_idx:05d}] method={method} "
-                f"w_tau_gain={_fmt6g(params.get('w_tau_gain'))} "
-                f"w_enabled={int(cfg.get('w_enabled', 0) or 0)} "
-                f"w_tau_bias={_fmt6g(cfg.get('w_tau_bias'))} "
-                f"w_gate={_fmt6g(args.w_gate)} "
-                f"outdir={outdir}"
-            )
-
-        if args.debug_print_every and (run_idx % int(args.debug_print_every) == 0):
-            print(
-                f"[submit {run_idx:05d}] method={method} "
-                f"w_tau_gain={_fmt6g(params.get('w_tau_gain'))} "
-                f"w_enabled={int(cfg.get('w_enabled', 0) or 0)} "
-                f"outdir={outdir}"
-            )
-
         job = Job(params=params, cfg=cfg, outdir=outdir, method=method)
         pending.append(pool.apply_async(run_one, (job, args)))
 
@@ -656,10 +705,7 @@ def main() -> None:
             d0 = float(row["desc_0"])
             d1 = float(row["desc_1"])
             score = float(row["score"])
-            updated = archive.update(
-                d0, d1, score, str(row["run_dir"]),
-                {k: float(row[k]) for k, _, _ in PARAM_SPACE}
-            )
+            updated = archive.update(d0, d1, score, str(row["run_dir"]), {k: float(row[k]) for k, _, _ in PARAM_SPACE})
 
             if (best_row is None) or (score > float(best_row.get("score", -1e18))):
                 best_row = dict(row)
