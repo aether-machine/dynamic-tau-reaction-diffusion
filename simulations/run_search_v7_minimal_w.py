@@ -393,12 +393,18 @@ def compute_universal_from_metrics(metrics_csv: str, args: argparse.Namespace) -
     t = df["time"].to_numpy(dtype=float)
     w = df["w_mean"].to_numpy(dtype=float)
 
-    # infer dt from time column
-    if len(t) >= 2:
-        dt = float(np.median(np.diff(t)))
+    # Interpret df['time'] as either simulation *steps* or physical time.
+    # In this project, metrics.csv typically logs time in steps.
+    dt_raw = float(np.median(np.diff(t))) if len(t) >= 2 else float(args.log_dt_fallback)
+    # Heuristic: if dt_raw is O(1) or larger while args.dt is small, treat time as steps.
+    time_is_steps = (dt_raw >= 1.0 and float(args.dt) <= 0.5)
+    if time_is_steps:
+        t_phys = t * float(args.dt)
+        dt_sample = float(args.dt) * float(args.log_every)
     else:
-        dt = float(args.log_dt_fallback)
-
+        # time already in physical units
+        t_phys = t
+        dt_sample = dt_raw
     w_gate = float(args.w_gate)
     alive_frac = float(np.mean(w > w_gate))
 
@@ -407,7 +413,7 @@ def compute_universal_from_metrics(metrics_csv: str, args: argparse.Namespace) -
     i0 = int(np.floor(n * float(args.window_start_frac)))
     i0 = max(0, min(i0, n - 3))
 
-    tt = t[i0:]
+    tt = t_phys[i0:]
     ww = w[i0:]
 
     # viable weights: only care when alive
@@ -417,7 +423,7 @@ def compute_universal_from_metrics(metrics_csv: str, args: argparse.Namespace) -
     logw = np.log(ww + eps)
     growth_slope = _weighted_slope(tt, logw, wt)
 
-    osc = _osc_diagnostics(ww, dt=dt, fmin=float(args.osc_fmin), fmax=float(args.osc_fmax), args=args)
+    osc = _osc_diagnostics(ww, dt=dt_sample, fmin=float(args.osc_fmin), fmax=float(args.osc_fmax), args=args)
     osc_log, osc_peak, osc_floor = osc['osc_log'], osc['osc_peak'], osc['osc_floor']
 
     return {
@@ -431,7 +437,9 @@ def compute_universal_from_metrics(metrics_csv: str, args: argparse.Namespace) -
         "osc_ratio": float(osc.get("osc_ratio", float("nan"))),
         "w_mean_mean": float(np.nanmean(w)),
         "w_mean_final": float(w[-1]),
-        "dt_metric": dt,
+        "dt_metric": float(dt_sample),
+        "dt_raw_metric": float(dt_raw),
+        "time_is_steps": int(time_is_steps),
     }
 
 
