@@ -1,640 +1,189 @@
-# Time-Density Physics: From Reaction–Diffusion to Proto-Life
+# Dynamic-τ Reaction–Diffusion (Time-Density Physics)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17856677.svg)](https://doi.org/10.5281/zenodo.17856677)
 
 > **“Matter is the memory of change — life is memory learning to organize itself.”**
 
-This repository develops and explores a new physical principle:
+This repository explores a hypothesis: that adding a **memory / time‑density field** `τ(x,y,t)` to a standard reaction–diffusion system can reshape the attractor landscape and produce **persistent, recurrent, bounded structures** (rings, packets, multi‑compartments, stripes, etc.).
 
-> **dynamic time density** $$\( \tau(x,y,t) \)$$ as a fundamental field  
-> that couples to reaction–diffusion systems, induces coherence,  
-> and produces **proto-life structures**.
+It includes:
+- **Simulators**: Gray–Scott-style reaction–diffusion + dynamic `τ` (and optional resource `N`)
+- **Search drivers**: BO/QD (MAP‑Elites) / hybrid loops for discovering interesting regimes
+- **Diagnostics**: oscillation/recurrence (v7 uses ACF), stability gates, morphology descriptors
+- **Replay + visualization**: replay top runs with dense snapshots and render GIFs/montages
 
-What began as a narrow question —
-
-> *Can temporal density fields influence chemical and structural transformations?*
-
-— has evolved into a general framework for understanding:
-
-- self-organization  
-- autocatalytic dynamics  
-- emergent coherence  
-- proto-metabolic structures  
-- memory-driven morphogenesis  
-- environmental robustness of “proto-organisms”
-
-all arising from **τ-modulated feedback loops** in a continuous medium.
-
-This repository contains the simulations, analysis pipeline, and results behind these experiments.
+> ⚠️ **Research sandbox.** “Proto‑life” here refers to *dynamical signatures* (boundedness, persistence, recurrence, internal reorg), not biological claims.
 
 ---
 
-## 1. Conceptual Overview
+## Quick start
 
-### 1.1 Time Density (τ)
+For a step‑by‑step guide (install → run → replay → GIFs), see:
 
-We model a **time-density field** $$\( \tau(x,y,t) \)$$ that represents local “thickness of time” or **memory density**:
+- **`RUNNING_GUIDE.md`**
 
-- where $$\( \tau \)$$ is high, processes slow and history accumulates;
-- where $$\( \tau \)$$ is low, processes are more labile and quickly forgotten.
-
-In this picture:
-
-- **Matter** ≈ fossilised change in a time-density field  
-- **Chemistry** ≈ structured manipulation of that field  
-- **Life** ≈ regions where the time field learns to reinforce its own patterns
-
-Mathematically, τ evolves according to a feedback equation of the form:
-
-
-$$\frac{\partial \tau}{\partial t} = \alpha\,S(x,y,t)$$
-$$-\beta\,(\tau - \tau_0)$$
-$$+\gamma\,N(x,y,t)$$
-$$+\kappa_\tau \nabla^2 \tau$$
-$$+\eta_\tau(x,y,t)$$
-
-where:
-
-- $$\( S(x,y,t) \)$$ is a **local activity / memory source** (reaction + gradients),
-- $$\( N(x,y,t) \)$$ is a **resource field** (“nutrient”),
-- $$\( \alpha, \beta, \gamma, \kappa_\tau \)$$ control feedback, relaxation, resource coupling, and τ-smoothing,
-- $$\( \eta_\tau \)$$ is τ-noise.
-
-The **key idea** is that τ both:
-
-1. **remembers** where interesting dynamics have happened, and  
-2. **feeds back** to those dynamics by modulating diffusion and stability.
-
----
-
-## 2. Simulation Progression
-
-The project has gone through several generations of models, converging on a robust **dynamic τ + Gray–Scott** framework (v5) where proto-life behaviour is most clearly expressed.
-
-### 2.1 Early prototypes (v1–v3)
-
-These are kept as **archival / exploratory** code and notebooks:
-
-- τ-modulated diffusion (temporal diffusion)
-- τ-modulated reaction rates (temporal catalysis)
-- τ-modulated “phase” behaviour (τ shifting effective criticality)
-
-They established that:
-
-- τ-gradients distort diffusion and reaction fronts,
-- τ can act as a hidden “medium” that focuses or disperses activity,
-- simple feedback is enough to induce complex spatial structure.
-
-### 2.2 Dynamic τ + Reaction–Diffusion (v2–v4)
-
-The first fully coupled PDE experiments combined:
-
-- a Gray–Scott reaction–diffusion system for $$\(A(x,y,t), B(x,y,t)\)$$,
-- a dynamic τ-field that responds to **reaction activity** and **gradients**,
-- an optional resource field $$\(N(x,y,t)\)$$.
-
-The v2 models already produced:
-
-- τ pockets that **stabilised oscillons** (proto-cell structures),
-- tubular τ filaments,
-- visually striking “walling”, “eating” and “tunnelling” behaviours.
-
-The v3–v4 runs generalised this into sweeps over τ-feedback parameters (α, β, γ) and Gray–Scott parameters (feed, kill), revealing regions in parameter space where **coherent, cell-like morphologies** are common.
-
----
-
-## 3. Dynamic τ v5: Proto-Life and Q-Ridge
-
-The current flagship model is:
-
-- `simulations/dynamic_tau_v5.py`  
-- sweeps and analyses in `simulations/run_sweep_v5.py` and `analyze_*_v5.py`.
-
-### 3.1 Core model
-
-The chemical subsystem is a 2-species Gray–Scott system:
-
-- \( A(x,y,t), B(x,y,t) \) with diffusion and autocatalytic reaction \( R = A B^2 \),
-- **effective diffusion** modulated by τ:
-
-  $$D_A^{\text{eff}} = \frac{D_{A0}}{\tau + \varepsilon}, \quad
-    D_B^{\text{eff}} = \frac{D_{B0}}{\tau + \varepsilon}$$
-
-The τ equation uses an **activity + memory + resource** source:
-
-- activity $$\( S(x,y,t) \)$$ built from $$\( |A B^2| \)$$ and $$\( |\nabla B| \)$$,
-- optional **memory kernels** (`mem_fast`, `mem_slow`) that integrate activity over time,
-- an optional **resource field** $$\(N(x,y,t)\)$$ that diffuses, is consumed, and replenished:
-
-$$\frac{\partial N}{\partial t} = D_N \nabla^2 N$$
-$$-\eta\,N B$$
-$$+\rho$$
-
-The result is a **time-density medium** where:
-
-- τ **remembers** sustained dynamics,
-- τ **sculpts** the landscape by slowing diffusion where memory accumulates,
-- N acts as a **resource abstraction layer** controlling how easily τ can thicken.
-
----
-
-## What’s new in v6
-
-v6 adds a search layer on top of the simulator:
-
-- **BO** (Bayesian optimization) to push score upward.
-- **QD / MAP‑Elites** to intentionally harvest *diverse* regimes.
-- A **hybrid BO+QD loop** (probabilistically picks BO vs QD per run).
-- A sharper **“proto‑life score v2”** designed to avoid “IoU dominates everything”, while still requiring viability.
-
-Key scripts:
-
-- `simulations/dynamic_tau_v6.py` — the simulator (reaction–diffusion + dynamic τ).
-- `simulations/run_search_v6.py` — BO / QD / hybrid search driver.
-- `simulations/analyze_search_v6.py` — aggregates results and produces plots + tables.
-
----
-
-## Metrics glossary (the “proto‑life” signals)
-
-The v6 search uses the same core metrics you’ve been tracking:
-
-### `maintenance_iou`
-A **viability / persistence** proxy: overlap between a mid‑simulation structure and the final structure.
-
-- Higher → the macroscopic pattern persists.
-- Lower → the system collapses, diffuses away, or explodes into noise.
-
-### `internal_reorg_index`
-An **internal reorganization** proxy: how much internal rearrangement happens while the outer form may remain.
-
-- Higher → richer internal change.
-- Too high can mean violent rearrangement that destroys viability.
-
-### `coherence_osc_index`
-A **coherent oscillation** proxy: is there sustained rhythmic / coherent activity (not just noise)?
-
-- Higher → more sustained oscillatory dynamics.
-
-### `mean_entropy` and `mean_coherence`
-Optional “texture” metrics used for diagnostics / ranking / plotting.
-
-- Entropy helps distinguish structured dynamics vs noise.
-- Coherence helps distinguish coordinated oscillation vs uncorrelated flicker.
-
----
-
-## v6 Search driver (BO / QD / hybrid)
-
-### 1) Basic run
+### 1) Create an environment
 
 ```bash
-python simulations/run_search_v6.py \
-  --out_root outputs/dynamic_tau_v6_search \
-  --workers 8 \
-  --budget 200 \
-  --init_random 40 \
-  --mode hybrid \
-  --p_qd 0.7 \
-  --nx 150 --ny 150 \
-  --steps 3000
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
 ```
 
-### 2) Recommended: QD “knobs” exposed
+Install dependencies (either your `requirements.txt` or the minimal set):
+```bash
+pip install -r requirements.txt
+# or
+pip install numpy scipy pandas matplotlib imageio tqdm
+```
 
-These tune the **behavior space mapping** (descriptors → bins) and how hard QD pushes for novelty.
+### 2) Run a search (v7-style, example)
 
-Example (matches the tuned run you posted):
+> Script names evolve (e.g. `run_search_v7_minimal_w_acf_v25.py`). Use the latest `run_search_v7_*.py` in `simulations/`.
 
 ```bash
-python simulations/run_search_v6.py \
-  --out_root outputs/dynamic_tau_v6_search_tuned \
-  --workers 8 --budget 200 --init_random 40 \
-  --mode hybrid --p_qd 0.7 \
-  --qd_bins 12 \
-  --qd_maint_max 0.35 \
-  --qd_reorg_scale 0.05 \
-  --qd_osc_scale 1e-5 \
-  --qd_mix_osc 0.3 \
-  --qd_sigma 0.14 \
-  --qd_flip_prob 0.35 \
-  --steps 3000 --nx 150 --ny 150
+python simulations/run_search_v7_minimal_w_acf_v25.py   --out_root outputs/v25_example   --workers 8 --budget 400 --init_random 80   --bins 24   --steps 3000 --nx 150 --ny 150   --dt 0.01 --log_every 20   --w_enabled 1 --w_gate 0.01 --w_tau_gain_max 0.15   --osc_fmin 0.05 --osc_fmax 1.5 --osc_min_cycles 2.0   --seed 1
 ```
 
-What these mean (conceptually):
+### 3) Replay the top runs with dense snapshots
 
-- `--qd_bins`: grid resolution in behavior space (MAP‑Elites grid is `bins × bins`).
-- `--qd_maint_max`: sets how maintenance IoU is normalized into descriptor space.
-- `--qd_reorg_scale`, `--qd_osc_scale`: control how reorg/osc are squashed into `[0,1]` (think “soft normalization”).
-- `--qd_mix_osc`: mixes reorg and oscillation into the second descriptor:
-  - `0.0` → descriptor 2 is “pure reorg”
-  - `1.0` → descriptor 2 is “pure oscillation”
-- `--qd_sigma`: adds Gaussian noise in descriptor space to prevent collapse into a tiny region.
-- `--qd_flip_prob`: occasionally swaps descriptor axes (another anti‑collapse trick).
-
-### 3) Score version
-
-The search driver can rank runs using a score function.
-
-- `v1` is a simple weighted blend.
-- `v2` adds **a soft viability gate** + **saturation** so IoU can’t dominate everything.
-
-Example:
+Replay creates `outputs/<run>/replay/...` with a snapshot sequence every `snap_every` steps.
 
 ```bash
-python simulations/run_search_v6.py \
-  --out_root outputs/dynamic_tau_v6_search_scorev2 \
-  --workers 8 --budget 200 --init_random 40 \
-  --mode hybrid --p_qd 0.7 \
-  --qd_bins 12 --qd_maint_max 0.35 --qd_reorg_scale 0.05 --qd_osc_scale 1e-5 --qd_mix_osc 0.3 \
-  --qd_sigma 0.14 --qd_flip_prob 0.35 \
-  --score_version v2 \
-  --score_iou_gate 0.08 \
-  --score_iou_width 0.02 \
-  --score_iou_sat_scale 0.10 \
-  --steps 3000 --nx 150 --ny 150
+PYTHONPATH=simulations python replay_runs_with_snapshots_patched_v2.py   --out_root outputs/v25_example   --top_k 50   --include_best 1   --snap_every 25   --snapshot_format npz   --clean 1
 ```
 
-Interpretation of the main v2 knobs:
-
-- `--score_iou_gate`: below this IoU the score is strongly suppressed.
-- `--score_iou_width`: how soft / sharp the gate is.
-- `--score_iou_sat_scale`: scale for the saturating IoU term (smaller = saturates earlier).
-
-If you want a *hard* “must be alive” filter, push `score_iou_gate` upward.
-If you want exploration of barely‑viable borderline regimes, lower it slightly.
-
-### 4) Search modes
-
-- `--mode bo`: always use Bayesian optimization (best for maximizing score).
-- `--mode qd`: always use QD/MAP‑Elites sampling (best for diversity).
-- `--mode hybrid`: each run chooses BO vs QD; `--p_qd` controls the fraction of QD runs.
-
-### 5) Resume
-
-If the process is interrupted:
+### 4) Render GIFs / montages
 
 ```bash
-python simulations/run_search_v6.py --out_root outputs/dynamic_tau_v6_search_tuned --resume
+python make_viz_from_runs_v8.py   --out_root outputs/v25_example/replay   --top_k 50   --field B   --make_gifs 1   --per_run_scale 0
 ```
 
----
+**Field tips**
+- `B` often shows “membrane/boundary” structure most clearly.
+- `tau` shows the memory scaffolding.
 
-## What `run_search_v6.py` writes
-
-Inside `--out_root`, you’ll typically see:
-
-- `boqd_log.csv` — one row per run (method, params, metrics, score, descriptors, run_dir)
-- `best_so_far.json` — rolling best run (score + params)
-- `qd_elites.json` — MAP‑Elites archive: best run_dir per behavior cell
-
-And per run directory (e.g. `outputs/.../qd/<id>/`):
-
-- `cfg.json` — parameters + flags
-- `metrics.csv` — scalar metrics
-- `state_mid.npz`, `state_final.npz` — saved state (includes at least `B` and `tau`)
-- `summary.json` — compact record used by the analyzer
+**Two‑frame GIF?** That usually means the visualizer only found `state_mid` + `state_final`. Check whether dense snapshots exist (e.g. `B_000025.npy`), and ensure you’re using `make_viz_from_runs_v8.py` or later.
 
 ---
 
-## Analyzing v6 runs
+## Conceptual overview
 
-After a search completes (or during, if you want live snapshots), run:
+### Time density / memory field `τ(x,y,t)`
 
-```bash
-python simulations/analyze_search_v6.py \
-  --run_dir outputs/dynamic_tau_v6_search_tuned \
-  --bins 12
+We treat `τ` as a local “time thickness” / memory density:
+
+- where `τ` is high, processes slow and history accumulates
+- where `τ` is low, dynamics are faster and more labile
+
+A generic `τ` evolution used across model versions:
+
+```math
+\frac{\partial \tau}{\partial t}
+= \alpha\,S(x,y,t)
+- \beta\,(\tau-\tau_0)
++ \gamma\,N(x,y,t)
++ \kappa_{\tau}\nabla^2\tau
++ \eta_{\tau}(x,y,t)
 ```
 
-The analyzer produces:
+Where:
+- `S(x,y,t)` is an activity / boundary source (reaction + gradients)
+- `N(x,y,t)` is an optional resource field (diffuse/consume/replenish)
+- `α,β,γ,κτ` control feedback, relaxation, resource coupling, and smoothing
+- `ητ` is stochasticity/noise in the memory field
 
-- `descriptor_scatter.png` — points in descriptor space, colored by score
-- `qd_elite_heatmap.png` — best score per MAP‑Elites cell
-- `coverage_over_time.png` — how quickly the search fills behavior space
-- `score_vs_metrics.png` — score vs each metric (overlay)
-- `top25_by_score.csv` — fastest way to find “what to look at next”
-- `analysis_quantiles.json` — quick distribution summary for sanity checks
-
----
-
-## Regime characterization (a practical taxonomy)
-
-Once you have `descriptor_scatter.png` and `qd_elite_heatmap.png`, you can label clusters into regimes.
-
-Here’s a simple, *actionable* taxonomy that maps directly to the metrics:
-
-### 1) Stable / static
-**High `maintenance_iou`**, **low `internal_reorg_index`**, **low `coherence_osc_index`**.
-
-- “Alive” only in the trivial sense: the pattern persists but does nothing.
-- Useful as a control group / baseline.
-
-### 2) Breathing maintenance
-**High `maintenance_iou`**, **moderate reorg**, **moderate-to-high oscillation**.
-
-- This is often the most “proto‑life‑ish” region: persistent boundary + active interior.
-- Expect higher `mean_coherence` than noise‑dominated cases.
-
-### 3) Metastable reorganization
-**Moderate IoU**, **high reorg**, **mixed oscillation**.
-
-- Pattern may hold for long periods but undergoes punctuated internal change.
-- These are great for “fractal resonance” / “internal negotiation” hypotheses because transitions can be sharp.
-
-### 4) Chaotic / noisy
-**Low IoU**, often **high entropy**, often **low coherence**.
-
-- Usually not helpful unless you’re explicitly studying noise‑driven exploration.
-
-### How to use QD to harvest regimes intentionally
-
-- To push toward “breathing maintenance”: increase `qd_mix_osc` (bias descriptor 2 toward oscillation) and use score v2 with a firm IoU gate.
-- To harvest reorganizers: decrease `qd_mix_osc`, lower `qd_reorg_scale` (more sensitivity), and slightly relax `score_iou_gate`.
-- If coverage collapses into a tiny region: increase `qd_sigma` and/or `qd_flip_prob`, and consider lowering `--p_qd` temporarily so BO can “jump” you to a new viable area.
+The defining feature is **feedback**:
+1) `τ` increases where dynamics are sustained,
+2) and then feeds back (typically through diffusion/reaction modulation) to stabilize or reshape those dynamics.
 
 ---
 
-## Legacy: v5 sweeps (baseline + Q‑ridge)
+## Model versions (high level)
 
-The older v5 workflow is still useful for controlled sweeps and for reproducing earlier results.
+This project has evolved through multiple “versions” as the simulator and measurement stack matured.
 
-### Uniform / grid sweep
-
-```bash
-python simulations/run_sweep_v5.py \
-  --out_root outputs/dynamic_tau_v5_sweep \
-  --steps 3000 --nx 150 --ny 150
-```
-
-### Q‑ridge sweep
-
-```bash
-python simulations/run_sweep_v5_qridge.py \
-  --out_root outputs/dynamic_tau_v5_qridge \
-  --steps 3000 --nx 150 --ny 150
-```
+- **v1–v4**: exploratory couplings (τ‑modulated diffusion, reaction, kernels). Kept for reference.
+- **v5**: stable dynamic‑τ + Gray–Scott + resource `N` sweeps (“Q‑ridge” style analysis).
+- **v6**: adds a **search layer** (BO/QD/hybrid) to discover diverse regimes automatically.
+- **v7**: measurement + tooling upgrades:
+  - ACF‑based oscillation/recurrence diagnostics (replacing FFT window locking issues)
+  - seed‑diversity init modes (rings, gaussian packets, stripes, multi‑seed)
+  - replay + dense snapshots + visualization pipeline
+  - morphology descriptors to begin classifying attractor families
 
 ---
 
-## Notes / tips
+## Outputs: what gets written
 
-- **Budget sizing:** if behavior coverage plateaus quickly, increase `--budget` and/or increase `--qd_sigma`.
-- **Low‑frequency / slow dynamics:** increase `--steps` (and consider saving snapshots more frequently).
-- **Reproducibility:** if you need determinism, add a fixed seed to the search driver and to the simulator RNG paths.
----
-## V7 “Measurement Calculus” Update: Universal `w`-conditioned metrics + crosstalk control
+A search `--out_root outputs/<name>` typically contains:
+- `boqd_log.csv` / `metrics.csv`: one row per attempted run (params, score, descriptors, errors)
+- `qd_elites.json`: MAP‑Elites archive (best run per bin)
+- `best_so_far.json`: global best candidate
 
-V7 shifts the search/analysis stack from a “zoo of scalar metrics” to a **single shared measurement calculus** computed from one organism indicator. The goal is to **handle crosstalk *before* computation**, so descriptors and scores become *different projections of the same conditioned process* rather than competing objectives.
+Per-run directories:
+- `outputs/<name>/{init,rand,qd}/run_*/meta.json`
+- `state_mid.npz`, `state_final.npz`
 
-> **Pipeline:** Field → weighted signals → shared viability window → orthogonalized functionals
+Replay directories:
+- `outputs/<name>/replay/<run_name>/...` with dense snapshots.
 
----
+Depending on simulator settings, dense snapshots may be saved as:
+- combined `state_000025.npz`, **or**
+- per‑field sequences like `A_000025.npy`, `B_000025.npy`, `tau_000025.npy`
 
-### 1) One shared organism measure inside the sim
-
-We define a soft organism indicator field `w(x,t)` (or equivalently use the logged `w_mean(t)` as its global summary). The key idea is that *all* downstream signals are computed as **conditional expectations under `w`**, rather than over the whole dish/grid.
-
-A typical soft indicator:
-$$\[
-w(x,t)=\sigma\!\left(\frac{B(x,t)-b_0}{b_w}\right)
-\]$$
-where $$\(\sigma\)$$ is a sigmoid-like soft threshold.
-
-This induces “body-conditioned” statistics for any field $$\(f(x,t)\)$$:
-
-$$\[
-E_w[f](t)=\frac{\sum_x w(x,t)f(x,t)}{\sum_x w(x,t)+\varepsilon},\quad
-\mathrm{Var}_w[f](t)=E_w[f^2](t)-E_w[f](t)^2
-\]$$
-
-**Why this kills crosstalk:**  
-Metrics like entropy/coherence computed on the full grid are dominated by background. Conditioning on `w` makes them “about the organism,” not the dish—so growth doesn’t trivially improve every other metric.
+The visualizer (v8+) supports both layouts.
 
 ---
 
-### 2) A shared viability window *before* any metric is computed
+## Repository map (recommended)
 
-Rather than compute metrics on all timesteps equally, we define a soft time-weight \(W(t)\) from mass-like signal \(M(t)=\langle w\rangle\) (or directly from `w_mean(t)`):
+Your local repo may differ, but a typical structure looks like:
 
-$$\[
-W(t)=\sigma\!\left(\frac{M(t)-M^\*}{s}\right)
-\]$$
-
-Optionally add a survival gate relative to early mass \(M_\text{ref}\):
-$$\[
-S(t)=\sigma\!\left(\frac{M(t)-\alpha M_\text{ref}}{s}\right)
-\]$$
-
-Then the effective analysis window is:
-$$\[
-\widetilde{W}(t)=W(t)\cdot S(t)\cdot \text{taper}(t)
-\]$$
-
-**Everything uses $$\(\widetilde{W}(t)\)$$.** This is the “handle crosstalk before computation” step.
-
----
-
-### 3) A minimal basis of conditioned signals (small, interpretable)
-
-We aim for a small set of channels spanning “life-like” behaviors:
-
-- **Growth channel:** scale-free log mass  
-  $$\[
-  g(t)=\log(M(t)+\varepsilon)
-  \]$$
-- **Oscillation (“breathing”) channel:** pick a scalar that should oscillate when internal dynamics stabilize. In minimal V7 we use time series derived from `w_mean(t)`; richer variants can use conditioned tau-structure like $$\(E_w[\|\nabla\tau\|^2]\)$$.
-- **Reorganization channel:** snapshot distance computed in the same `w`-measure (optional but recommended).
-- **Complexity channel:** conditioned entropy / spectral entropy (optional regularizer).
-
----
-
-### 4) Universal metric operators (the only “allowed” functionals)
-
-Instead of inventing bespoke metrics, V7 uses a small library of operators—each applied consistently under \(\widetilde{W}(t)\):
-
-**Operator A — weighted slope (growth)**
-$$\[
-\text{slope}_{\widetilde{W}}(g)=\arg\min_a\sum_t\widetilde{W}(t)\big(g(t)-(at+b)\big)^2
-\]$$
-
-**Operator B — oscillation lock-in via PSD peakiness (preferred)**
-Compute PSD $$\(P(f)\)$$ on a windowed/detrended signal $$\(s(t)\)$$. Then:
-
-- **Peak ratio (“lock-in”)**
-  $$\[
-  \text{peak\_ratio}(s)=\frac{\max_{f\in B}P(f)}{\mathrm{median}_{f\in B}P(f)+\varepsilon}
-  \]$$
-  Often reported as:
-  $$\[
-  \log\_{{\rm peak}}=\log(\text{peak\_ratio})
-  \]$$
-- **Peak frequency**
-  $$\[
-  f_{\rm peak}=\arg\max_{f\in B}P(f)
-  \]$$
-
-**Operator C — conditional distance (reorg/maintenance)**
-Weighted correlation distance between snapshots $$\(B_1, B_2\)$$:
-$$\[
-D(B_1,B_2)=1-\mathrm{corr}_w(B_1,B_2)
-\]$$
-
-**Operator D — conditioned entropy / spectral entropy (optional)**
-Entropy of a weighted histogram or spectral entropy of a conditioned PSD.
-
----
-
-### 5) Explicit decomposition: remove shared variance (“orthogonalize”)
-
-The step most pipelines skip: **orthogonalize secondary channels against mass** so they don’t just measure “big organisms do more of everything.”
-
-Example: oscillation often correlates with mass. We regress $$\(s(t)\)$$ on $$\(g(t)\)$$ within the viable window and use the residual:
-$$\[
-s_\perp(t)=s(t)-\hat{a}g(t)-\hat{b}
-\]$$
-Then compute oscillation metrics on $$\(s_\perp(t)\)$$, not $$\(s(t)\)$$.
-
-This is still pure math (weighted least squares) and it makes metrics *stop fighting*.
-
----
-
-### 6) Practical V7 stack (growth + oscillation, minimal steering)
-
-This is the minimal set that stays “fluid / analog” (supports subtle incremental changes):
-
-- **Shared:** `w_mean(t)` (proxy for $$\(M(t)\))$$, viability window $$\(\widetilde{W}(t)\)$$
-- **Score:** growth functional (weighted slope of `log(w_mean + eps)`)
-- **Osc diagnostics:** `f_peak`, `peak_ratio`, `log_peak_ratio`, plus a continuity `osc_ratio` if desired
-- **Descriptors:** typically `(growth_sigmoid, osc_sigmoid)` where `osc_sigmoid` is based on `log_peak_ratio` (peakiness), not tiny band-energy fractions
-- **Feedback parameter:** `w_tau_gain` (and related `w_*` toggles) are logged and treated as first-class controls for “self-maintaining” region formation
-
----
-
-### 7) What’s new in V7 (summary)
-
-- **Universal life signal:** use `w` / `w_mean(t)` as the shared organism measure.
-- **Shared viability window:** gate *all* metrics consistently in time.
-- **Oscillation “lock-in”:** add PSD peakiness + `f_peak` (more sensitive than band/total energy).
-- **Crosstalk control:** optional residualization against log-mass to make oscillation/complexity “pure axes.”
-- **Minimal steering:** focus search pressure on stable regimes without needing ad-hoc metric piles.
-
----
-
-### 8) Immediate sanity probes (recommended)
-
-To verify the pipeline is behaving (and not a resolution/bug artifact):
-
-- Print a 10-row sample table per sweep:
-  `f_peak, peak_ratio, log_peak_ratio, osc_ratio, w_tau_gain`
-- Ensure `f_peak` is *not* constant across all runs (otherwise frequency resolution/banding is dominating).
-- Ensure `w_tau_gain` is nonzero/variable during evaluation and matches the CSV (otherwise activation/logging mismatch).
-
-
-
-
-### 6. Repository Structure
-```
-time-density/
-│
-├── README.md                     ← overview and entry point
-│
-├── docs/
-│   ├── theory_overview.md        ← conceptual background (time-density, τ)
-│   ├── proto_life_results.md     ← main v5 proto-life analysis & figures
-│   └── roadmap_v2.md             ← research roadmap and future directions
-│
+```text
+.
 ├── simulations/
-│   ├── dynamic_tau_v5.py         ← core v5 time-density + Gray–Scott model
-│   ├── run_sweep_v5.py           ← parameter sweeps (global + Q-ridge)
-│   ├── tau_reaction_diffusion_v2.py   ← archival v2 exploratory model
-│   └── (older notebooks / scripts for v1–v4, kept for reference)
-│
+│   ├── dynamic_tau_v5.py
+│   ├── dynamic_tau_v6.py
+│   ├── dynamic_tau_v7*.py
+│   ├── run_sweep_v5*.py
+│   └── run_search_v6.py / run_search_v7*.py
 ├── analysis/
-│   ├── analyze_proto_life_v5.py  ← aggregate metrics & scoring
-│   ├── analyze_internal_v5.py    ← boundary / internal dynamics metrics
-│   └── run_env_tests_v5.py       ← environmental perturbation experiments
-│
-├── outputs/
-│   ├── dynamic_tau_v5/           ← raw global sweeps
-│   ├── dynamic_tau_v5_qridge/    ← refined Q-ridge sweeps
-│   └── dynamic_tau_v5_env/       ← environment-variant runs
-│
-├── plots/
-│   └── proto_life_v5/
-│       ├── runs_summary_v5.csv
-│       ├── runs_summary_v5_qridge.csv
-│       ├── runs_summary_v5_qridge_with_internal.csv
-│       ├── env_tests_summary.csv
-│       ├── phase maps, scatterplots
-│       └── best-run montages & cross-sections
-│
-├── LICENSE
-└── zenodo.json
+│   └── (optional sweep/search analyzers)
+├── replay_runs_with_snapshots_patched_v2.py
+├── make_viz_from_runs_v8.py
+├── RUNNING_GUIDE.md
+├── README.md
+└── outputs/   (generated)
 ```
-## 7. How to Run
-### 7.1 Setup
-```bash
-python -m venv .venv
-source .venv/bin/activate
 
-pip install --upgrade pip
-pip install numpy matplotlib pandas pillow tqdm
-```
-### 7.2 Run a sweep
-From repository root:
-```bash
-# Global sweep (example)
-python simulations/run_sweep_v5.py --mode global --workers 4
+---
 
-# Q-ridge refinement sweep (example)
-python simulations/run_sweep_v5.py --mode qridge --workers 4
-```
-Outputs will appear under outputs/dynamic_tau_v5/ and outputs/dynamic_tau_v5_qridge/.
-### 7.3 Analyse runs
-```bash
-# Aggregate metrics
-python analysis/analyze_proto_life_v5.py \
-    --root outputs/dynamic_tau_v5_qridge \
-    --out plots/proto_life_v5/runs_summary_v5_qridge.csv
+## Citation
 
-# Add internal dynamics metrics
-python analysis/analyze_internal_v5.py \
-    --csv plots/proto_life_v5/runs_summary_v5_qridge.csv
+If you use this work in academic writing or derivative software, please cite the Zenodo archive:
 
-# Environmental tests for selected candidates
-python analysis/run_env_tests_v5.py \
-    --candidates 40cdedd754 94392f5ff1 6fc841af45
-```
-Then inspect the CSVs and figures in plots/proto_life_v5/.
+- DOI: https://doi.org/10.5281/zenodo.17856677
 
-8. Citation
+(See Zenodo for the recommended citation string.)
 
-This work will be archived in Zenodo upon Version 1.0 release.
+---
 
-Example citation:
+## Roadmap
 
-[Author Name], Time-Density Physics: Proto-Life from Temporal Memory Fields.
-GitHub (2025), 
+Near-term directions:
+- richer morphology descriptors (ringness, stripe anisotropy, filament measures)
+- better “behavior space” descriptors for QD (avoid collapse into one basin)
+- robustness tests (gentle parameter shifts / perturbations)
+- interacting seeds / “ecologies” (multi-compartment persistence, drift, splitting)
 
+Longer-term ideas:
+- multi-resource fields and structured environments
+- multiple interacting memory fields
+- links to active matter / excitable media / field-theoretic analogies
 
-9. Roadmap
+---
 
-The next stages of this project focus on:
+## License
 
-richer nutrient and resource dynamics (multi-resource ecologies)
-
-geometry-coupled τ (curvature-dependent time, spatial self-sculpting)
-
-systematic τ-noise and perturbation studies (resilience and evolution)
-
-multiple interacting τ-species (proto-ecologies)
-
-more elaborate memory kernels (learning systems, adaptation timescales)
-
-possible links to experimental active media and field-theoretic models
-
-For details, see docs/roadmap_v2.md.
-
-“When time thickens, matter forms.
-When matter remembers, life begins.”
+See `LICENSE`.
