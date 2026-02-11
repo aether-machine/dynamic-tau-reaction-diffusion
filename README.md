@@ -183,220 +183,138 @@ Optional “texture” metrics used for diagnostics / ranking / plotting.
 - Coherence helps distinguish coordinated oscillation vs uncorrelated flicker.
 
 ---
----
 
-## 4. Setup
+## v6 Search driver (BO / QD / hybrid)
 
-### 4.1 Create a virtual environment
-```bash
-python3 -m venv venv
-source venv/bin/activate
-python -m pip install --upgrade pip
-```
-
-### 4.2 Install dependencies
-If you have a `requirements.txt`:
-```bash
-pip install -r requirements.txt
-```
-
-If not, you’ll typically need:
-```bash
-pip install numpy scipy pandas matplotlib imageio tqdm
-```
-
-Some systems require an extra codec package for GIF/MP4, but `imageio` generally works out-of-the-box.
-
----
-
-## 4.2) Core directory layout
-
-Typical important paths:
-
-- `simulations/`
-  - `dynamic_tau_*.py` simulators (PDE stepper + state saving)
-  - `run_search_*.py` runners (search driver: init/rand/qd, scoring, logging)
-- `outputs/<run_name>/`
-  - `boqd_log.csv` / `metrics.csv` (summary rows per run)
-  - `qd_elites.json` / `best_so_far.json` (best candidates)
-  - `init/`, `rand/`, `qd/` (per-run folders with `meta.json` + state snapshots)
-- `outputs/<run_name>/replay/`
-  - replayed top candidates with dense snapshots and rendered GIFs
-
----
-
-## 4.3) Running a search
-
-### 4.1 Basic “v7” search command (example)
-Run from repo root:
+### 1) Basic run
 
 ```bash
-python simulations/run_search_v7_minimal_w_acf_v25.py   --out_root outputs/v25_example   --workers 8 --budget 400 --init_random 80   --bins 24   --steps 3000 --nx 150 --ny 150   --dt 0.01 --log_every 20   --w_enabled 1 --w_gate 0.01 --w_tau_gain_max 0.15   --osc_fmin 0.05 --osc_fmax 1.5 --osc_min_cycles 2.0   --seed 1
+python simulations/run_search_v6.py \
+  --out_root outputs/dynamic_tau_v6_search \
+  --workers 8 \
+  --budget 200 \
+  --init_random 40 \
+  --mode hybrid \
+  --p_qd 0.7 \
+  --nx 150 --ny 150 \
+  --steps 3000
 ```
 
-### 4.2 Switching initial condition modes (examples)
+### 2) Recommended: QD “knobs” exposed
 
-**Rings**
-```bash
-python simulations/run_search_v7_minimal_w_acf_v25.py   --out_root outputs/v25_rings   --init_mode ring   --seed_count 3 --seed_pos_mode random   --seed_radius 22 --seed_ring_width 4   --workers 8 --budget 400 --init_random 80   --bins 24 --steps 3000 --nx 150 --ny 150 --dt 0.01 --log_every 20   --w_enabled 1 --w_gate 0.01 --w_tau_gain_max 0.15   --osc_fmin 0.05 --osc_fmax 1.5 --osc_min_cycles 2.0   --seed 2
-```
+These tune the **behavior space mapping** (descriptors → bins) and how hard QD pushes for novelty.
 
-**Stripes**
-```bash
-python simulations/run_search_v7_minimal_w_acf_v25.py   --out_root outputs/v25_stripes   --init_mode stripes   --workers 8 --budget 400 --init_random 80   --bins 24 --steps 3000 --nx 150 --ny 150 --dt 0.01 --log_every 20   --w_enabled 1 --w_gate 0.01 --w_tau_gain_max 0.15   --osc_fmin 0.05 --osc_fmax 1.5 --osc_min_cycles 2.0   --seed 3
-```
-
-**Gaussian blobs / packets (seed diversity)**
-```bash
-python simulations/run_search_v7_minimal_w_acf_v25.py   --out_root outputs/v25_gaussian_packets   --init_mode gaussian   --seed_count 6 --seed_pos_mode random   --seed_sigma 6   --workers 8 --budget 600 --init_random 120   --bins 32 --steps 4000 --nx 180 --ny 180 --dt 0.01 --log_every 20   --w_enabled 1 --w_gate 0.01 --w_tau_gain_max 0.15   --osc_fmin 0.05 --osc_fmax 1.5 --osc_min_cycles 2.0   --seed 4
-```
-
-> Use `python simulations/<runner>.py --help` to see which init flags are supported in your current runner.
-
----
-
-## 4.4) Understanding outputs
-
-### 4.1 Top-level summary files
-In `outputs/<run_name>/` you’ll usually see:
-- `boqd_log.csv` and/or `metrics.csv`: one row per attempted run
-- `qd_elites.json`: elite archive (best per bin)
-- `best_so_far.json`: global best candidate
-
-### 4.2 Per-run folders
-In `outputs/<run_name>/{init,rand,qd}/run_*/` you’ll typically get:
-- `meta.json`: parameters, descriptors, score, and diagnostics
-- `state_mid.npz` / `state_final.npz`: mid/final snapshots
-
-If `save_snapshots` is enabled during the search, you may also see dense sequences, but for large searches it’s common to only save mid/final and replay later.
-
----
-
-## 5) Replaying top runs with dense snapshots
-
-The search phase is optimized for *coverage*. Replay is where you generate *high-quality time series* for visualization.
-
-### 5.1 Replay top-K
-Make sure `PYTHONPATH` can find the simulator modules:
+Example (matches the tuned run you posted):
 
 ```bash
-PYTHONPATH=simulations python replay_runs_with_snapshots_patched_v2.py   --out_root outputs/v25_example   --top_k 50   --include_best 1   --snap_every 25   --snapshot_format npz   --clean 1
+python simulations/run_search_v6.py \
+  --out_root outputs/dynamic_tau_v6_search_tuned \
+  --workers 8 --budget 200 --init_random 40 \
+  --mode hybrid --p_qd 0.7 \
+  --qd_bins 12 \
+  --qd_maint_max 0.35 \
+  --qd_reorg_scale 0.05 \
+  --qd_osc_scale 1e-5 \
+  --qd_mix_osc 0.3 \
+  --qd_sigma 0.14 \
+  --qd_flip_prob 0.35 \
+  --steps 3000 --nx 150 --ny 150
 ```
 
-This creates:
-- `outputs/v25_example/replay/<run_name>/...` with dense snapshots
+What these mean (conceptually):
 
-### 5.2 Snapshot formats
-Depending on the simulator version, replay may save:
-- combined `state_000025.npz` files **or**
-- per-field files like `A_000025.npy`, `B_000025.npy`, `tau_000025.npy`
+- `--qd_bins`: grid resolution in behavior space (MAP‑Elites grid is `bins × bins`).
+- `--qd_maint_max`: sets how maintenance IoU is normalized into descriptor space.
+- `--qd_reorg_scale`, `--qd_osc_scale`: control how reorg/osc are squashed into `[0,1]` (think “soft normalization”).
+- `--qd_mix_osc`: mixes reorg and oscillation into the second descriptor:
+  - `0.0` → descriptor 2 is “pure reorg”
+  - `1.0` → descriptor 2 is “pure oscillation”
+- `--qd_sigma`: adds Gaussian noise in descriptor space to prevent collapse into a tiny region.
+- `--qd_flip_prob`: occasionally swaps descriptor axes (another anti‑collapse trick).
 
-Both are supported by the latest visualizer (see below).
+### 3) Score version
+
+The search driver can rank runs using a score function.
+
+- `v1` is a simple weighted blend.
+- `v2` adds **a soft viability gate** + **saturation** so IoU can’t dominate everything.
+
+Example:
+
+```bash
+python simulations/run_search_v6.py \
+  --out_root outputs/dynamic_tau_v6_search_scorev2 \
+  --workers 8 --budget 200 --init_random 40 \
+  --mode hybrid --p_qd 0.7 \
+  --qd_bins 12 --qd_maint_max 0.35 --qd_reorg_scale 0.05 --qd_osc_scale 1e-5 --qd_mix_osc 0.3 \
+  --qd_sigma 0.14 --qd_flip_prob 0.35 \
+  --score_version v2 \
+  --score_iou_gate 0.08 \
+  --score_iou_width 0.02 \
+  --score_iou_sat_scale 0.10 \
+  --steps 3000 --nx 150 --ny 150
+```
+
+Interpretation of the main v2 knobs:
+
+- `--score_iou_gate`: below this IoU the score is strongly suppressed.
+- `--score_iou_width`: how soft / sharp the gate is.
+- `--score_iou_sat_scale`: scale for the saturating IoU term (smaller = saturates earlier).
+
+If you want a *hard* “must be alive” filter, push `score_iou_gate` upward.
+If you want exploration of barely‑viable borderline regimes, lower it slightly.
+
+### 4) Search modes
+
+- `--mode bo`: always use Bayesian optimization (best for maximizing score).
+- `--mode qd`: always use QD/MAP‑Elites sampling (best for diversity).
+- `--mode hybrid`: each run chooses BO vs QD; `--p_qd` controls the fraction of QD runs.
+
+### 5) Resume
+
+If the process is interrupted:
+
+```bash
+python simulations/run_search_v6.py --out_root outputs/dynamic_tau_v6_search_tuned --resume
+```
 
 ---
 
-## 6) Rendering montages and GIFs
+## What `run_search_v6.py` writes
 
-### 6.1 Render GIFs from replay outputs
-```bash
-python make_viz_from_runs_v8.py   --out_root outputs/v25_example/replay   --top_k 50   --field B   --make_gifs 1   --per_run_scale 0
-```
+Inside `--out_root`, you’ll typically see:
 
-Recommended fields:
-- `B` often shows boundaries/structure crisply
-- `tau` shows the memory scaffolding
-- `A` can be less visually salient depending on parameters
+- `boqd_log.csv` — one row per run (method, params, metrics, score, descriptors, run_dir)
+- `best_so_far.json` — rolling best run (score + params)
+- `qd_elites.json` — MAP‑Elites archive: best run_dir per behavior cell
 
-### 6.2 If you only get 2-frame GIFs
-Two-frame GIFs usually mean the visualizer is only finding:
-- `state_mid.npz` and `state_final.npz`
+And per run directory (e.g. `outputs/.../qd/<id>/`):
 
-Check whether dense snapshots exist:
-```bash
-RUN="outputs/v25_example/replay/<some_run_dir>"
-ls -1 "$RUN" | head
-ls -1 "$RUN"/state_*.npz 2>/dev/null | wc -l
-ls -1 "$RUN"/A_*.npy 2>/dev/null | wc -l
-ls -1 "$RUN"/B_*.npy 2>/dev/null | wc -l
-```
-
-If you see `A_*.npy`/`B_*.npy` but no `state_*.npz`, render using `--field B` (or `A`/`tau`) and ensure you’re using `make_viz_from_runs_v8.py` or later.
+- `cfg.json` — parameters + flags
+- `metrics.csv` — scalar metrics
+- `state_mid.npz`, `state_final.npz` — saved state (includes at least `B` and `tau`)
+- `summary.json` — compact record used by the analyzer
 
 ---
 
-## 7) Common troubleshooting
+## Analyzing v6 runs
 
-### 7.1 `ModuleNotFoundError: No module named 'dynamic_tau_v7'`
-This almost always means `PYTHONPATH` is not set to include `simulations/`.
+After a search completes (or during, if you want live snapshots), run:
 
-Fix:
 ```bash
-PYTHONPATH=simulations python replay_runs_with_snapshots_patched_v2.py ...
+python simulations/analyze_search_v6.py \
+  --run_dir outputs/dynamic_tau_v6_search_tuned \
+  --bins 12
 ```
 
-Or export once per shell:
-```bash
-export PYTHONPATH=simulations
-```
+The analyzer produces:
 
-### 7.2 “QD folder didn’t appear”
-If the run never reaches QD phase, check `boqd_log.csv` / `metrics.csv` for errors.
-
-Common cause: runner crashed inside diagnostics. Look for an `error` column and count non-empty values.
-
-### 7.3 “Unrecognized arguments” errors
-Runner interfaces change across versions. Always confirm flags with:
-```bash
-python simulations/run_search_v7_minimal_w_acf_v25.py --help
-```
-
-### 7.4 Replay writes `.npy` even when `snapshot_format=npz`
-Some simulator versions implement replay snapshots as per-field `.npy` (A/B/tau), regardless of the `snapshot_format` request. This is OK as long as the visualizer supports it (v8+).
-
----
-
-## 8) Suggested workflow (repeatable)
-
-1. Run a search:
-   - `outputs/<name>/` is created
-2. Inspect top-level logs:
-   - ensure `error rows: 0`
-3. Replay top runs:
-   - generates `outputs/<name>/replay/`
-4. Render GIFs:
-   - run `make_viz_from_runs_v8.py`
-5. Curate:
-   - pick representative runs per attractor class for writeups
-
----
-
-## 9) Reproducibility tips
-
-- Use `--seed` for the search driver.
-- Keep `meta.json` from interesting runs; it contains the configuration needed to replay.
-- If you change runner versions, keep output roots separate (`outputs/v25_*`, `outputs/v26_*`, etc.).
-
----
-
-## 10) Quick “smoke test” commands
-
-### Verify search output has no errors
-```bash
-python - <<'PY'
-import pandas as pd
-df = pd.read_csv("outputs/v25_example/boqd_log.csv")
-err = df["error"].notna().sum() if "error" in df.columns else 0
-print("rows:", len(df), "error_rows:", err)
-print("methods:", df["method"].value_counts().to_dict() if "method" in df.columns else None)
-PY
-```
-
-### Verify replay has dense snapshots
-```bash
-RUN="outputs/v25_example/replay"
-find "$RUN" -maxdepth 2 -type f -name "B_*.npy" | head
-find "$RUN" -maxdepth 2 -type f -name "state_*.npz" | head
-```
+- `descriptor_scatter.png` — points in descriptor space, colored by score
+- `qd_elite_heatmap.png` — best score per MAP‑Elites cell
+- `coverage_over_time.png` — how quickly the search fills behavior space
+- `score_vs_metrics.png` — score vs each metric (overlay)
+- `top25_by_score.csv` — fastest way to find “what to look at next”
+- `analysis_quantiles.json` — quick distribution summary for sanity checks
 
 ---
 
@@ -720,4 +638,3 @@ For details, see docs/roadmap_v2.md.
 
 “When time thickens, matter forms.
 When matter remembers, life begins.”
-
