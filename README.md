@@ -1,6 +1,6 @@
 # Dynamic-τ Reaction–Diffusion (Time-Density Physics)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17856677.svg)](https://doi.org/10.5281/zenodo.17856677)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18608638.svg)](https://doi.org/10.5281/zenodo.18608638)
 
 > **“Matter is the memory of change — life is memory learning to organize itself.”**
 
